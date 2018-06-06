@@ -1,0 +1,105 @@
+HighScores
+MenuName
+High Scores
+TextBoxes
+20
+Empty
+0.3
+0.25
+0
+0.6
+0.25
+Empty
+0.3
+0.3
+0
+0.6
+0.3
+Empty
+0.3
+0.35
+0
+0.6
+0.35
+Empty
+0.3
+0.4
+0
+0.6
+0.4
+Empty
+0.3
+0.45
+0
+0.6
+0.45
+Empty
+0.3
+0.5
+0
+0.6
+0.5
+Empty
+0.3
+0.55
+0
+0.6
+0.55
+Empty
+0.3
+0.6
+0
+0.6
+0.6
+Empty
+0.3
+0.65
+0
+0.6
+0.65
+Empty
+0.3
+0.7
+0
+0.6
+0.7
+Buttons
+1
+Back
+0.4
+0.8
+0.2
+0.06
+NavTo
+MenuKind
+Root
+
+////////////
+//Structure
+////////////
+MenuType
+
+MenuName
+MenuName
+
+TextBox
+.numTextBoxes
+//TextString
+//TextBox x (%)
+//TextBox y (%)
+//TextBox w (%)
+//TextBox h (%)
+
+Buttons
+.NumButtons
+
+//ButtonName
+//Button x (%)
+//Button y (%)
+//Button w (%)
+//Button h (%)
+//Button Action
+//Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
+//Button Payload str (navpath or other data)
+
+x, y, w, h = relative % of window_width and window_height

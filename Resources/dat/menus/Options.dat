@@ -1,0 +1,73 @@
+Options 
+MenuName
+Options
+TextBoxes
+2
+Your Name
+0.42
+0.3
+Volume
+0.445
+0.54
+Buttons
+4
+PlayerName
+0.25
+0.38
+0.5
+0.08
+TextInput
+Text
+Your Name
+ 
+0.35
+0.6
+0.3
+0.1
+Save
+None
+None
+ 
+0.35
+0.6
+0.3
+0.1
+Save
+Volume
+Volume
+Back
+0.4
+0.8
+0.2
+0.06
+NavTo
+MenuKind
+Root
+
+////////////
+//Structure
+////////////
+MenuType
+
+MenuName
+MenuName
+
+TextBox
+.numTextBoxes
+//TextString
+//TextBox x (%)
+//TextBox y (%)
+
+Buttons
+.NumButtons
+
+//ButtonName
+//Button x (%)
+//Button y (%)
+//Button w (%)
+//Button h (%)
+//Button Action
+//Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
+//Button Payload str (navpath or other data)
+
+x, y, w, h = relative % of window_width and window_height

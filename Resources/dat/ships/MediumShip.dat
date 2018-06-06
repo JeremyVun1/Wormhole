@@ -1,0 +1,107 @@
+MediumShip
+Boxes
+9
+0
+1
+-2
+0
+-1
+0
+0
+0
+1
+0
+2
+0
+-1
+-1
+0
+-1
+1
+-1
+Triangles
+1
+0
+-1
+Extents
+3
+3
+AnchorPoints
+4
+-1
+-1
+1
+-1
+0
+-2
+0
+1
+Tools
+3
+0
+Ballistic
+1
+Ballistic
+2
+Ballistic
+Emitters
+1
+3
+Thruster
+45
+2
+0.6
+7
+6
+ColorOrange
+ColorCrimson
+
+//2:      /2\
+//1:   [0][ ][1]
+//0: [][ ][ ][ ][]
+//-1:     [3]
+//
+
+/////////////
+//Note:
+//x, y are in relative grid units relative to the ship's central x,y
+//e.g. (1,0) means 1 box length to the right of the ship's origin
+/////////////
+//STRUCTURE
+/////////////
+
+//ShipType
+
+//Boxes
+//number of Boxes
+//x
+//y
+
+//Triangles
+//number of Triangles
+//x
+//y
+
+//Extents
+//x
+//y
+
+//AnchorPoints
+//number of AnchorPoints
+//x
+//y
+
+//Tools
+//Number of tools
+//AnchorPoint Index
+//AmmoType
+
+//Emitters
+//Number of Emitters
+//AnchorPoint Index
+//Emitter Name
+//Emission Rate
+//Particle MaxVel
+//Particle Expiry
+//Particle Size (in relative box unit lengths)
+//Particle TurnRate

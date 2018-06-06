@@ -1,0 +1,79 @@
+Root
+MenuName
+WormHole 
+TextBoxes
+0
+Buttons
+5
+Play
+0.4
+0.38
+0.2
+0.06
+NavTo
+MenuKind
+Select
+Options
+0.4
+0.46
+0.2
+0.06
+NavTo
+MenuKind
+Options
+HighScores
+0.4
+0.54
+0.2
+0.06
+NavTo
+MenuKind
+HighScores
+Help
+0.4
+0.62
+0.2
+0.06
+NavTo
+MenuKind
+Help
+Quit
+0.4
+0.7
+0.2
+0.06
+Quit
+MenuKind
+Quit
+
+////////////
+//Structure
+////////////
+MenuType
+
+MenuName
+MenuName
+
+TextBox
+.numTextBoxes
+
+//TextString
+//TextBox x (%)
+//TextBox y (%)
+//TextBox w (%)
+//TextBox h (%)
+//TextBox Font
+
+Buttons
+.NumButtons
+
+//ButtonName
+//Button x (%)
+//Button y (%)
+//Button w (%)
+//Button h (%)
+//Button Action
+//Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
+//Button Payload str (navpath or other data)
+
+x, y, w, h = relative % of window_width and window_height

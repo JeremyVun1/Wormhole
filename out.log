@@ -1,0 +1,17 @@
+Free Pascal Compiler version 3.0.4 [2017/10/06] for i386
+Copyright (c) 1993-2017 by Florian Klaempfl and others
+Target OS: Win32 for i386
+Compiling .\src\.\Wormhole.pas
+Wormhole.pas(1308,1) Warning: function result variable of a managed type does not seem to initialized
+Wormhole.pas(1348,28) Warning: function result variable of a managed type does not seem to initialized
+Wormhole.pas(1360,1) Warning: function result variable of a managed type does not seem to initialized
+Wormhole.pas(1381,1) Warning: Function result variable does not seem to initialized
+Wormhole.pas(1433,1) Warning: function result variable of a managed type does not seem to initialized
+Wormhole.pas(2184,1) Warning: Function result variable does not seem to initialized
+Wormhole.pas(3313,65) Warning: Local variable "color" does not seem to be initialized
+Wormhole.pas(3361,2) Warning: unreachable code
+Wormhole.pas(4122,1) Warning: function result variable of a managed type does not seem to initialized
+Wormhole.pas(4647,1) Warning: function result variable of a managed type does not seem to initialized
+Linking .\bin\Debug\Wormhole.exe
+4825 lines compiled, 1.4 sec, 252400 bytes code, 7252 bytes data
+10 warning(s) issued

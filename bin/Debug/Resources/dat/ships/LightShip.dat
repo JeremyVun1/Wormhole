@@ -1,0 +1,89 @@
+LightShip
+Boxes
+4
+-1
+0
+0
+0
+1
+0
+0
+-1
+Triangles
+0
+Extents
+3
+2
+AnchorPoints
+3
+-1
+0
+1
+0
+0
+0
+Tools
+2
+0
+Ballistic
+1
+Ballistic
+Emitters
+1
+2
+Thruster
+45
+2
+0.6
+7
+6
+ColorOrange
+ColorCrimson
+
+//1:    [ ]
+//0: [0][1][2]
+//
+
+/////////////
+//Note:
+//x, y are in relative grid units relative to the ship's central x,y
+//e.g. (1,0) means 1 box length to the right of the ship's origin
+/////////////
+//STRUCTURE
+/////////////
+
+//ShipType
+
+//Boxes
+//number of Boxes
+//x
+//y
+
+//Triangles
+//number of Triangles
+//x
+//y
+
+//Extents
+//x
+//y
+
+//AnchorPoints
+//number of AnchorPoints
+//x
+//y
+
+//Tools
+//Number of tools
+//AnchorPoint Index
+//AmmoType
+
+//Emitters
+//Number of Emitters
+//AnchorPoint Index
+//Emitter Name
+//Emission Rate
+//Particle MaxVel
+//Particle Expiry
+//Particle Size (in relative box unit lengths)
+//Particle TurnRate

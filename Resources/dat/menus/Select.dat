@@ -1,0 +1,107 @@
+Select
+MenuName
+Select
+TextBoxes
+2
+Ship Class
+0.44
+0.25
+Difficulty
+0.43
+0.45
+Buttons
+8
+Light Ship
+0.15
+0.35
+0.2
+0.06
+Save
+ShipClass
+LightShip
+Medium Ship
+0.4
+0.35
+0.2
+0.06
+Save
+ShipClass
+MediumShip
+Heavy Ship
+0.65
+0.35
+0.2
+0.06
+Save
+ShipClass
+HeavyShip
+Novice
+0.15
+0.55
+0.2
+0.06
+Save
+Difficulty
+Novice
+Intermediate
+0.4
+0.55
+0.2
+0.06
+Save
+Difficulty
+Intermediate
+Expert
+0.65
+0.55
+0.2
+0.06
+Save
+Difficulty
+Expert
+Start
+0.4
+0.73
+0.2
+0.06
+Play
+MenuKind
+Main Menu
+Back
+0.4
+0.8
+0.2
+0.06
+NavTo
+MenuKind
+Root
+
+////////////
+//Structure
+////////////
+MenuType
+
+MenuName
+MenuName
+
+TextBox
+.numTextBoxes
+//TextString
+//TextBox x (%)
+//TextBox y (%)
+//TextBox w (%)
+//TextBox h (%)
+
+Buttons
+.NumButtons
+
+//ButtonName
+//Button x (%)
+//Button y (%)
+//Button w (%)
+//Button h (%)
+//Button Action
+//Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
+//Button Payload str (navpath or other data)
+
+x, y, w, h = relative % of window_width and window_height

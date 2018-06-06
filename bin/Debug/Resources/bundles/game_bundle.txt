@@ -1,0 +1,24 @@
+//
+// Loads all Game Module resources
+//
+
+//Loads bitmaps for the user interface
+BITMAP,SpeedItem,SpeedItem.png
+BITMAP,InvincibleItem,InvincibleItem.png
+BITMAP,DamageItem,DamageItem.png
+BITMAP,SpeedBuff,SpeedActive.png
+BITMAP,InvincibleBuff,InvincibleActive.png
+BITMAP,DamageBuff,DamageActive.png
+BITMAP,HealthContainer,HealthContainer.png
+BITMAP,VerticalContainer,VerticalContainer.png
+
+//Loads Fonts
+FONT,PointsPopup,maven_pro_regular.ttf,18
+FONT,Score,maven_pro_regular.ttf,36
+FONT,DamagePopup,maven_pro_regular.ttf,14
+
+//Loads Sounds
+//
+
+//Loads Music
+MUSIC,GameMusic,RedGloom.mid

@@ -1,0 +1,67 @@
+Help
+MenuName
+Help
+TextBoxes
+8
+Space Command has detected an anomolous signal
+0.1
+0.25
+in the area and you have been ordered to investigate.
+0.1
+0.3
+Generic enemies are coming through a wormhole to
+0.1
+0.4
+cause mischief. Destroy the wormhole and save the
+0.1
+0.45
+world before they engulf us all.
+0.1
+0.5
+Collect and use powerups dropped by their ships
+0.1
+0.6
+when they are destroyed.
+0.1
+0.65
+Move [W][A][S][D] | Fire [SPACE] | Powerup [X]
+0.1
+0.73
+Buttons
+1
+Back
+0.4
+0.8
+0.2
+0.06
+NavTo
+MenuKind
+Root
+
+////////////
+//Structure
+////////////
+MenuType
+
+MenuName
+MenuName
+
+TextBox
+.numTextBoxes
+//TextString
+//TextBox x (%)
+//TextBox y (%)
+
+Buttons
+.NumButtons
+
+//ButtonName
+//Button x (%)
+//Button y (%)
+//Button w (%)
+//Button h (%)
+//Button Action
+//Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
+//Button Payload str (navpath or other data)
+
+x, y, w, h = relative % of window_width and window_height
