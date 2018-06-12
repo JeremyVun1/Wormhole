@@ -28,17 +28,21 @@ function CreateBallisticAmmo(const Color: LongWord; const Pos: Point2D): AmmoDat
 //CreateAmmo(AmmoType, Vector, Point2D, Single, Single, Owner): AmmoData
 function CreateAmmo(const AmmoKind: AmmoType; const Pos: Point2D; const Heading: Vector; const Owner: OwnerType; const Modifier: Single = 1): AmmoData;
 
+//Returns the appropriate owner color from file
+//GetOwnerColor(OwnerColorType);
+function GetOwnerColor(const OwnerColorKind: OwnerColorType): LongWord;
+
 //loads the color set for ship collision flashing
 //GetShipColors(LongWord): ShipColorArray
 function GetShipColors(const BaseColor: LongWord): ShipColorArray;
 
 //Adds a tool to the Ship at the specified anchorpoint with the specified AmmoType
 //AddTool(ShipData, Integer, AmmoType)
-function AddTool(Tools: ToolDataArray; const AnchorIndex: Integer; const AmmoKind: AmmoType): ToolDataArray;
+function AddTool(Tools: ToolDataArray; const AnchorIndex: Integer; const Color: String; const AmmoKind: AmmoType): ToolDataArray;
 
 //Adds an emitter to the Ship at the specified anchorpoint with the specified attributes
 //CreateEmitter(ShipData, Integer, String, Single, Single, Single, Single, Double, LongWord, LongWord);
-function CreateEmitter(AnchorIndex: Integer; EmitterName: String; Rate, MaxVel, Expiry, Size: Single; TurnRate: Double; Color1, Color2: LongWord): EmitterData;
+function CreateEmitter(AnchorIndex: Integer; EmitterName: String; Rate, MaxVel, Expiry, Size: Single; TurnRate: Double; Color1, Color2: String): EmitterData;
 
 //creates and returns a timer package (2 timers and a control switch)
 //CreateTimerPackage(): TimerPackage;
@@ -55,6 +59,10 @@ function CreateShip(const ShipKind: ShipType; const BaseColor: LongWord; const P
 //Creates and returns a debris entity from the passed in linesegment
 //CreateDebris(LineSegment): Debris
 function CreateDebris(const Line: LineSegment; const Color: LongWord): Debris;
+
+//Returns the tier color from the passed in NPCTier Index
+//GetNPCTierColor(Integer): LongWord
+function GetNPCTierColor(Index: Integer): LongWord;
 
 implementation
 
@@ -162,6 +170,42 @@ begin
 	Result.Move.Vel := MultiplyVector(Heading, Modifier * BALLISTIC_MAX_VELOCITY);
 end;
 
+function GetOwnerColor(const OwnerColorKind: OwnerColorType): LongWord;
+var
+	line, subDir, filename: String;
+	ShipColorsFile: TextFile;
+begin
+	subDir := 'dat\ships\';
+	filename := concat(subDir, 'ShipColors.dat');
+	Result := ColorWhite;
+
+	If FileExists(PathToResource(filename)) then
+	begin
+		Assign(ShipColorsFile, PathToResource(filename));
+		Reset(ShipColorsFile);
+		try
+			while not EOF(ShipColorsFile) do
+			begin
+				ReadLn(ShipColorsFile, line);
+				if (line = GetEnumName(TypeInfo(OwnercolorType), ord(OwnerColorKind)))  then
+				begin
+					ReadLn(ShipColorsFile, line);
+					Result := RGBAColorCode(line);
+					Close(ShipColorsFile);
+					Exit;
+				end;
+			end;
+		except
+			WriteLn('GetShipColor() - File Handling Eror');
+		end;
+		Close(ShipColorsFile);
+	end
+	else 
+	begin
+		WriteLn(filename, ' does not exist');
+	end;
+end;
+
 function GetShipColors(const BaseColor: LongWord): ShipColorArray;
 begin
 	Result[2] := ColorWhite;
@@ -170,7 +214,7 @@ begin
 	Result[0] := BaseColor;
 end;
 
-function AddTool(Tools: ToolDataArray; const AnchorIndex: Integer; const AmmoKind: AmmoType): ToolDataArray;
+function AddTool(Tools: ToolDataArray; const AnchorIndex: Integer; const Color: String; const AmmoKind: AmmoType): ToolDataArray;
 var
 	f: Integer;
 begin
@@ -181,7 +225,7 @@ begin
 	Tools[f].AnchorIndex := AnchorIndex;
 	Tools[f].AmmoKind := AmmoKind;
 	Tools[f].CoolDown.Clock := CreateTimer();
-	Tools[f].Color[0] := ColorWhite;
+	Tools[f].Color[0] := RGBAColorCode(Color);
 	Tools[f].Color[1] := ColorRed;
 
 	//tool shape
@@ -190,7 +234,7 @@ begin
 	Result := Tools;
 end;
 
-function CreateEmitter(AnchorIndex: Integer; EmitterName: String; Rate, MaxVel, Expiry, Size: Single; TurnRate: Double; Color1, Color2: LongWord): EmitterData;
+function CreateEmitter(AnchorIndex: Integer; EmitterName: String; Rate, MaxVel, Expiry, Size: Single; TurnRate: Double; Color1, Color2: String): EmitterData;
 begin
 	//setup the emitter data
 	Result.EmitterName := EmitterName;
@@ -202,17 +246,16 @@ begin
 	Result.Expiry := Expiry;
 	Result.Size := Size;
 	Result.TurnRate := TurnRate * (PI/180);
-	Result.Color[0] := Color1;
-	Result.Color[1] := Color2;
+	Result.Color[0] := RGBAColorCode(Color1);
+	Result.Color[1] := RGBAColorCode(Color2);
 end;
 
 function ReadShipEmitters(var ShipFile: TextFile): EmitterDataArray;
 var
 	i, anchorIndex, count: Integer;
-	line, emitterName: String;
+	line, emitterName, color1Str, color2Str: String;
 	rate, maxVel, expiry, size: Single;
 	turnRate: Double;
-	color1, color2: LongWord;
 begin
 	ReadLn(ShipFile, line);
 	if (line = 'Emitters') then
@@ -221,16 +264,16 @@ begin
 		SetLength(Result, Count);
 		for i:=0 to (Count-1) do
 		begin
-			ReadLn(ShipFile, AnchorIndex);
-			ReadLn(ShipFile, EmitterName);
-			ReadLn(ShipFile, Rate);
-			ReadLn(ShipFile, MaxVel);
-			ReadLn(ShipFile, Expiry);
-			ReadLn(ShipFile, Size);
-			ReadLn(ShipFile, TurnRate);
-			Color1 := ColorOrange;
-			Color2 := ColorCrimson;
-			Result[i] := CreateEmitter(anchorIndex, emitterName, rate, maxVel, expiry, size, turnRate, color1, color2);
+			ReadLn(ShipFile, anchorIndex);
+			ReadLn(ShipFile, emitterName);
+			ReadLn(ShipFile, rate);
+			ReadLn(ShipFile, maxVel);
+			ReadLn(ShipFile, expiry);
+			ReadLn(ShipFile, size);
+			ReadLn(ShipFile, turnRate);
+			ReadLn(ShipFile, color1Str);
+			ReadLn(ShipFile, color2Str);
+			Result[i] := CreateEmitter(anchorIndex, emitterName, rate, maxVel, expiry, size, turnRate, color1Str, color2Str);
 		end;
 	end;
 end;
@@ -238,7 +281,7 @@ end;
 function ReadShipTools(var ShipFile: TextFile): ToolDataArray;
 var
 	i, anchorIndex, Count: Integer;
-	line: String;
+	colorStr, line: String;
 	ammoKind: AmmoType;
 begin
 	ReadLn(ShipFile, line);
@@ -247,11 +290,12 @@ begin
 		ReadLn(ShipFile, Count);
 		for i:=0 to (Count-1) do
 		begin
-			ReadLn(ShipFile, AnchorIndex);
+			ReadLn(ShipFile, anchorIndex);
+			ReadLn(ShipFile, colorStr);
 			ReadLn(ShipFile, ammoKind);
 
 			//add tool to the ship
-			Result := AddTool(Result, anchorIndex, ammoKind);
+			Result := AddTool(Result, anchorIndex, colorStr, ammoKind);
 		end;
 	end;
 end;
@@ -389,6 +433,16 @@ begin
 	Result.Clock := CreateTimer();
 	Result.SubClock := CreateTimer();
 	Result.Switch := False;
+end;
+
+function GetNPCTierColor(Index: Integer): LongWord;
+begin
+	case Index of
+		0: Result := GetOwnerColor(Tier1Color);
+		1: Result := GetOwnerColor(Tier2Color);
+		2: Result := GetOwnerColor(Tier3Color);
+		else Result := GetOwnerColor(Tier1Color);
+	end;
 end;
 
 function ApplyNPCModifiers(Ship: ShipData; const Difficulty: DifficultyType): ShipData;

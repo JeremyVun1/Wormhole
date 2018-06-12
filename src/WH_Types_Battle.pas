@@ -6,6 +6,7 @@ uses sgBackEndTypes, SwinGame, WH_Types_Shared;
 
 type
 	OwnerType = (HumanPlayer, Computer);
+	OwnerColorType = (PlayerColor, Tier1Color, Tier2Color, Tier3Color);
 	AmmoType = (Ballistic, Missile);
 	ItemType = (Invincible, Speed, Damage);
 	NumberPopupType = (DamagePopup, PointsPopup);

@@ -4,9 +4,11 @@ Select
 TextBoxes
 2
 Ship Class
+White
  4.399999976E-01
  2.500000000E-01
 Difficulty
+White
  4.300000072E-01
  4.499999881E-01
 Buttons
@@ -19,6 +21,9 @@ Light Ship
 Save
 ShipClass
 LightShip
+White
+Grey
+White
 Medium Ship
  4.000000060E-01
  3.499999940E-01
@@ -27,6 +32,9 @@ Medium Ship
 Save
 ShipClass
 MediumShip
+White
+Grey
+White
 Heavy Ship
  6.499999762E-01
  3.499999940E-01
@@ -35,6 +43,9 @@ Heavy Ship
 Save
 ShipClass
 HeavyShip
+White
+Grey
+White
 Novice
  1.500000060E-01
  5.500000119E-01
@@ -43,6 +54,9 @@ Novice
 Save
 Difficulty
 Novice
+White
+Grey
+White
 Intermediate
  4.000000060E-01
  5.500000119E-01
@@ -51,6 +65,9 @@ Intermediate
 Save
 Difficulty
 Intermediate
+White
+Grey
+White
 Expert
  6.499999762E-01
  5.500000119E-01
@@ -59,6 +76,9 @@ Expert
 Save
 Difficulty
 Expert
+White
+Grey
+White
 Start
  4.000000060E-01
  7.300000191E-01
@@ -67,6 +87,9 @@ Start
 Play
 MenuKind
 Main Menu
+White
+Grey
+White
 Back
  4.000000060E-01
  8.000000119E-01
@@ -75,3 +98,6 @@ Back
 NavTo
 MenuKind
 Root
+White
+Grey
+White

@@ -224,10 +224,6 @@ function RotateLeftInput(): Boolean;
 function FireBallisticInput(): Boolean;
 function ActivatePowerupInput(): Boolean;
 
-//Returns the tier color from the passed in NPCTier Index
-//GetNPCTierColor(Integer): LongWord
-function GetNPCTierColor(Index: Integer): LongWord;
-
 //returns an empty inventory record
 //GetEmptyInventory(): InventoryArray
 function GetEmptyInventory(): InventoryArray;
@@ -1031,16 +1027,6 @@ begin
 	If KeyDown(XKey) then 
 	begin
 		Result := True;
-	end;
-end;
-
-function GetNPCTierColor(Index: Integer): LongWord;
-begin
-	case Index of
-		0: Result := ColorBurlyWood;
-		1: Result := ColorSilver;
-		2: Result := ColorGold;
-		else Result := ColorBurlyWood;
 	end;
 end;
 

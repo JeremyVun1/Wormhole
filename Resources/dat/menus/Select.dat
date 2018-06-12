@@ -4,9 +4,11 @@ Select
 TextBoxes
 2
 Ship Class
+White
 0.44
 0.25
 Difficulty
+White
 0.43
 0.45
 Buttons
@@ -19,6 +21,9 @@ Light Ship
 Save
 ShipClass
 LightShip
+White
+Grey
+White
 Medium Ship
 0.4
 0.35
@@ -27,6 +32,9 @@ Medium Ship
 Save
 ShipClass
 MediumShip
+White
+Grey
+White
 Heavy Ship
 0.65
 0.35
@@ -35,6 +43,9 @@ Heavy Ship
 Save
 ShipClass
 HeavyShip
+White
+Grey
+White
 Novice
 0.15
 0.55
@@ -43,6 +54,9 @@ Novice
 Save
 Difficulty
 Novice
+White
+Grey
+White
 Intermediate
 0.4
 0.55
@@ -51,6 +65,9 @@ Intermediate
 Save
 Difficulty
 Intermediate
+White
+Grey
+White
 Expert
 0.65
 0.55
@@ -59,6 +76,9 @@ Expert
 Save
 Difficulty
 Expert
+White
+Grey
+White
 Start
 0.4
 0.73
@@ -67,6 +87,9 @@ Start
 Play
 MenuKind
 Main Menu
+White
+Grey
+White
 Back
 0.4
 0.8
@@ -75,6 +98,9 @@ Back
 NavTo
 MenuKind
 Root
+White
+Grey
+White
 
 ////////////
 //Structure
@@ -82,15 +108,14 @@ Root
 MenuType
 
 MenuName
-MenuName
+//MenuName
 
 TextBox
 .numTextBoxes
 //TextString
+//Font Color
 //TextBox x (%)
 //TextBox y (%)
-//TextBox w (%)
-//TextBox h (%)
 
 Buttons
 .NumButtons
@@ -103,5 +128,8 @@ Buttons
 //Button Action
 //Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
 //Button Payload str (navpath or other data)
+//Font Color
+//Fill Color
+//Border Color
 
 x, y, w, h = relative % of window_width and window_height

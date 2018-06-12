@@ -2,12 +2,6 @@ Free Pascal Compiler version 3.0.4 [2017/10/06] for i386
 Copyright (c) 1993-2017 by Florian Klaempfl and others
 Target OS: Win32 for i386
 Compiling .\src\.\Wormhole.pas
-Compiling .\src\WH_Factory_Battle.pas
-WH_Factory_Battle.pas(216,1) Warning: function result variable of a managed type does not seem to initialized
-WH_Factory_Battle.pas(254,28) Warning: function result variable of a managed type does not seem to initialized
-WH_Factory_Battle.pas(264,1) Warning: function result variable of a managed type does not seem to initialized
-WH_Factory_Battle.pas(283,1) Warning: Function result variable does not seem to initialized
-WH_Factory_Battle.pas(331,1) Warning: function result variable of a managed type does not seem to initialized
+Compiling .\src\WH_Module_Menu.pas
 Linking .\bin\Debug\Wormhole.exe
-472 lines compiled, 0.3 sec, 253312 bytes code, 7252 bytes data
-5 warning(s) issued
+761 lines compiled, 0.3 sec, 256496 bytes code, 7252 bytes data

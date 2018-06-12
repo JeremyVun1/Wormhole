@@ -37,7 +37,7 @@ function GetPadding(TextSize, BoxSize: Single): Single;
 
 //Draws a button with the passed in attributes
 //DrawButton(String, Point2D, Size, LongWord, LongWord)
-procedure DrawButton(const Text: String; const Pos: Point2D; const Extents: Size; const FillColor, TextColor: LongWord);
+procedure DrawButton(const Text: String; const Pos: Point2D; const Extents: Size; const FontColor, FillColor, BorderColor: LongWord);
 
 //returns the payload string of the button with the specified button name
 //GetButtonNamedPayload(ButtonArray, String)
@@ -146,14 +146,14 @@ begin
 	Result := (BoxSize - TextSize) / 2;
 end;
 
-procedure DrawButton(const Text: String; const Pos: Point2D; const Extents: Size; const FillColor, TextColor: LongWord);
+procedure DrawButton(const Text: String; const Pos: Point2D; const Extents: Size; const FontColor, FillColor, BorderColor: LongWord);
 var
 	TextWidth: Single;
 begin
 	FillRectangle(FillColor, Pos.x, Pos.y, Extents.w, Extents.h);
-	DrawRectangle(TextColor, Pos.x, Pos.y, Extents.w, Extents.h);
+	DrawRectangle(BorderColor, Pos.x, Pos.y, Extents.w, Extents.h);
 	TextWidth := Length(Text) * 10;
-	DrawText(Text, TextColor, 'ButtonText', Pos.x + GetPadding(TextWidth, Extents.w), Pos.y + Extents.h/6);
+	DrawText(Text, FontColor, 'ButtonText', Pos.x + GetPadding(TextWidth, Extents.w), Pos.y + Extents.h/6);
 end;
 
 function GetButtonNamedPayload(const Buttons: ButtonArray; const ButtonName: String): String;
@@ -179,7 +179,7 @@ begin
 
 	TextBoxes[f].Text := Text;
 	TextBoxes[f].Pos := Pos;
-	TextBoxes[f].Color := Color;
+	TextBoxes[f].Color.Font := Color;
 
 	Result := TextBoxes;
 end;

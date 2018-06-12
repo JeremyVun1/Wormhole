@@ -19,6 +19,12 @@ type
 		Str: String;
 	end;
 
+	ColorData = record
+		Font: LongWord;
+		Fill: LongWord;
+		Border: LongWord;		
+	end;
+
 	ButtonData = record
 		ButtonName: String;
 		Pos: Point2D;
@@ -27,13 +33,13 @@ type
 		Payload: PayloadData;
 		Clicked: Boolean;
 		Highlighted: Boolean;
-		Color: array[0..1] of LongWord;
+		Color: ColorData;
 	end;
 
 	TextBoxData = record
 		Text: String;
 		Pos: Point2D;
-		Color: LongWord;
+		Color: ColorData;
 	end;
 
 	ButtonArray = array of ButtonData;

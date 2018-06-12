@@ -4,14 +4,16 @@ Options
 TextBoxes
 2
 Your Name
+White
 0.42
 0.3
 Volume
+White
 0.445
 0.54
 Buttons
 4
-PlayerName
+ 
 0.25
 0.38
 0.5
@@ -19,6 +21,9 @@ PlayerName
 TextInput
 Text
 Your Name
+Black
+White
+Black
  
 0.35
 0.6
@@ -27,6 +32,9 @@ Your Name
 Save
 None
 None
+White
+Grey
+White
  
 0.35
 0.6
@@ -35,6 +43,9 @@ None
 Save
 Volume
 Volume
+White
+Red
+White
 Back
 0.4
 0.8
@@ -43,6 +54,9 @@ Back
 NavTo
 MenuKind
 Root
+White
+Grey
+White
 
 ////////////
 //Structure
@@ -50,11 +64,12 @@ Root
 MenuType
 
 MenuName
-MenuName
+//MenuName
 
 TextBox
 .numTextBoxes
 //TextString
+//Font Color
 //TextBox x (%)
 //TextBox y (%)
 
@@ -69,5 +84,8 @@ Buttons
 //Button Action
 //Button Payload type (MenuKind, Difficulty, ShipClass, Resolution)
 //Button Payload str (navpath or other data)
+//Font Color
+//Fill Color
+//Border Color
 
 x, y, w, h = relative % of window_width and window_height

@@ -67,6 +67,13 @@ procedure HandleStarTwinkling(var Stars: StarArray; const TwinkleCoolDown: Timer
 //HandleBackground(BackgroundData)
 procedure HandleBackground(var Background: BackgroundData);
 
+//translates color string into SwinGame 32bit rgba color codes
+//RGBAColorCode(String): LongWord;
+function RGBAColorCode(Color: String): LongWord;
+
+//translates rgba 32 bit color code into a string
+//ColorString(LongWord): String;
+function ColorString(Color: LongWord): String;
 
 ////////////
 //Private
@@ -246,6 +253,70 @@ end;
 procedure HandleBackground(var Background: BackgroundData);
 begin
 	HandleStarTwinkling(Background.Stars, Background.TwinkleCooldown);
+end;
+
+function RGBAColorCode(Color: String): LongWord;
+begin
+	case Color of
+		'Red': Result := ColorRed;
+		'Crimson': Result := ColorCrimson;
+		'Orange': Result := ColorOrange;
+		'LightYellow': Result := ColorLightYellow;
+		'Yellow': Result := ColorYellow;
+		'Green': Result := ColorGreen;
+		'BrightGreen': Result := ColorBrightGreen;
+		'Cyan': Result := ColorCyan;
+		'LightSteelBlue': Result := ColorLightSteelBlue;
+		'Blue': Result := ColorBlue;
+		'SkyBlue': Result := ColorSkyBlue;
+		'Indigo': Result := ColorIndigo;
+		'Violet': Result := ColorViolet;
+		'BlueViolet': Result := ColorBlueViolet;
+		'White': Result := ColorWhite;
+		'Grey': Result := ColorGrey;
+		'GhostWhite': Result := ColorGhostWhite;
+		'Black': Result := ColorBlack;
+		'Aqua': Result := ColorAqua;
+		'AquaMarine': Result := ColorAquamarine;
+		'Brown': Result := ColorBrown;
+		'BurlyWood': Result := ColorBurlyWood;
+		'Gold': Result := ColorGold;
+		'Silver': Result := ColorSilver;
+		'Purple': Result := ColorPurple;
+		'Transparent': Result := ColorTransparent;
+		else Result := ColorWhite;
+	end;
+end;
+
+function ColorString(Color: LongWord): String;
+begin
+	if (Color = ColorRed) then Result := 'Red'
+	else if (Color = ColorCrimson) then Result := 'Crimson'
+	else if (Color = ColorOrange) then Result := 'Orange'
+	else if (Color = ColorLightYellow) then Result := 'LightYellow'
+	else if (Color = ColorYellow) then Result := 'Yellow'
+	else if (Color = ColorGreen) then Result := 'Green'
+	else if (Color = ColorBrightGreen) then Result := 'BrightGreen'
+	else if (Color = ColorCyan) then Result := 'Cyan'
+	else if (Color = ColorLightSteelBlue) then Result := 'LightSteelBlue'
+	else if (Color = ColorBlue) then Result := 'Blue'
+	else if (Color = ColorSkyBlue) then Result := 'SkyBlue'
+	else if (Color = ColorIndigo) then Result := 'Indigo'
+	else if (Color = ColorViolet) then Result := 'Violet'
+	else if (Color = ColorBlueViolet) then Result := 'BlueViolet'
+	else if (Color = ColorWhite) then Result := 'White'
+	else if (Color = ColorGrey) then Result := 'Grey'
+	else if (Color = ColorGhostWhite) then Result := 'GhostWhite'
+	else if (Color = ColorBlack) then Result := 'Black'
+	else if (Color = ColorAqua) then Result := 'Aqua'
+	else if (Color = ColorAquamarine) then Result := 'AquaMarine'
+	else if (Color = ColorBrown) then Result := 'Brown'
+	else if (Color = ColorBurlyWood) then Result := 'BurlyWood'
+	else if (Color = ColorGold) then Result := 'Gold'
+	else if (Color = ColorSilver) then Result := 'Silver'
+	else if (Color = ColorPurple) then Result := 'Purple'
+	else if (Color = ColorTransparent) then Result := 'Transparent'
+	else Result := 'White';
 end;
 
 end.

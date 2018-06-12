@@ -33,23 +33,23 @@ begin
 		if (Buttons[i].Payload.Kind = Volume) then
 		begin
 			Extents.w *= MusicVolume();
-			DrawButton(Buttons[i].ButtonName, Pos, Extents, ColorRed, Buttons[i].Color[1]);
+			DrawButton(Buttons[i].ButtonName, Pos, Extents, Buttons[i].Color.Font, Buttons[i].Color.Fill, Buttons[i].Color.Border);
 		end
 		//draw text input button
 		else if (Buttons[i].Action = TextInput) then
 		begin
-			DrawButton(Buttons[i].ButtonName, Pos, Extents, ColorWhite, Buttons[i].Color[1]);
+			DrawButton(Buttons[i].ButtonName, Pos, Extents, Buttons[i].Color.Font, Buttons[i].Color.Fill, Buttons[i].Color.Border);
 			if not ReadingText() then
 			begin
-				DrawText(Buttons[i].Payload.Str, ColorBlack, 'MenuText', Round(Pos.x) + 10, Round(Pos.y + GetPadding(28, Extents.h)));
+				DrawText(Buttons[i].Payload.Str, Buttons[i].Color.Font, 'MenuText', Round(Pos.x) + 10, Round(Pos.y + GetPadding(28, Extents.h)));
 			end;
 		end
 		//draw all other buttons
 		else
 		begin
 			case Buttons[i].Highlighted of
-				True: DrawButton(Buttons[i].ButtonName, Pos, Extents, ColorYellow, ColorBlack);
-				False: DrawButton(Buttons[i].ButtonName, Pos, Extents, Buttons[i].Color[0], Buttons[i].Color[1]);
+				True: DrawButton(Buttons[i].ButtonName, Pos, Extents, ColorBlack, ColorYellow, ColorBlack);
+				False: DrawButton(Buttons[i].ButtonName, Pos, Extents, Buttons[i].Color.Font, Buttons[i].Color.Fill, Buttons[i].Color.Border);
 			end;
 		end;
 	end;
@@ -65,7 +65,7 @@ begin
 	for i:=0 to High(TextBoxes) do
 	begin
 		Pos := PercentToPosPoint(TextBoxes[i].Pos);
-		DrawText(TextBoxes[i].Text, TextBoxes[i].Color, 'MenuText', Pos.x, Pos.y);
+		DrawText(TextBoxes[i].Text, TextBoxes[i].Color.Font, 'MenuText', Pos.x, Pos.y);
 	end;
 
 	//Draw Name
@@ -386,7 +386,7 @@ begin
 			if (Buttons[i].Action = TextInput) and not ReadingTexT() then
 			begin
 				ReadFont := FontNamed('MenuText');
-				StartReadingTextWithText(Buttons[i].Payload.Str, ColorBlack, 20, ReadFont, Round(Pos.x) + 10, Round(Pos.y + GetPadding(28, Extents.h)));
+				StartReadingTextWithText(Buttons[i].Payload.Str, Buttons[i].Color.Font, 20, ReadFont, Round(Pos.x) + 10, Round(Pos.y + GetPadding(28, Extents.h)));
 			end
 
 			//volume button
@@ -440,7 +440,7 @@ end;
 procedure ReadMenuButtons(var MenuFile: TextFile; var Buttons: ButtonArray);
 var
 	count, i: Integer;
-	line: String;
+	line, Fontcolor, FillColor, BorderColor: String;
 begin
 	ReadLn(MenuFile, line);
 	if (line = 'Buttons') then
@@ -454,11 +454,15 @@ begin
 			ReadLn(MenuFile, Buttons[i].Pos.y);
 			ReadLn(MenuFile, Buttons[i].Extents.w);
 			ReadLn(MenuFile, Buttons[i].Extents.h);
-			Buttons[i].Color[0] := ColorGrey;
-			Buttons[i].Color[1] := ColorWhite;
 			ReadLn(MenuFile, Buttons[i].Action);
 			ReadLn(MenuFile, Buttons[i].Payload.Kind);
-			ReadLn(MenuFile, Buttons[i].Payload.Str);
+			ReadLn(MenuFile, Buttons[i].Payload.Str);			
+			ReadLn(MenuFile, FontColor);
+			ReadLn(MenuFile, FillColor);
+			ReadLn(MenuFile, BorderColor);
+			Buttons[i].Color.Font := RGBAColorCode(FontColor);
+			Buttons[i].Color.Fill := RGBAColorCode(FillColor);
+			Buttons[i].Color.Border := RGBAColorCode(BorderColor);
 		end;
 	end;
 end;
@@ -468,7 +472,7 @@ end;
 procedure ReadMenuTextBoxes(var MenuFile: TextFile; var TextBoxes: TextBoxArray);
 var
 	count, i: Integer;
-	line: String;
+	line, FontColor: String;
 begin
 	ReadLn(MenuFile, line);
 	if (line = 'TextBoxes') then
@@ -478,9 +482,10 @@ begin
 		for i:=0 to High(TextBoxes) do
 		begin
 			ReadLn(MenuFile, TextBoxes[i].Text);
+			ReadLn(MenuFile, FontColor);
 			ReadLn(MenuFile, TextBoxes[i].Pos.x);
 			ReadLn(MenuFile, TextBoxes[i].Pos.y);
-			TextBoxes[i].Color := ColorWhite;
+			TextBoxes[i].Color.Font := RGBAColorCode(FontColor);
 		end;
 	end;
 end;
@@ -597,6 +602,9 @@ begin
 		WriteLn(MenuFile, Buttons[i].Action);
 		WriteLn(MenuFile, Buttons[i].Payload.Kind);
 		WriteLn(MenuFile, Buttons[i].Payload.Str);
+		WriteLn(MenuFile, ColorString(Buttons[i].Color.Font));
+		WriteLn(MenuFile, ColorString(Buttons[i].Color.Fill));
+		WriteLn(MenuFile, ColorString(Buttons[i].Color.Border));
 	end;
 end;
 
@@ -612,6 +620,7 @@ begin
 	for i:=0 to High(TextBoxes) do
 	begin		
 		WriteLn(MenuFile, TextBoxes[i].Text);
+		WriteLn(MenuFile, ColorString(TextBoxes[i].Color.Font));
 		WriteLn(MenuFile, TextBoxes[i].Pos.x);
 		WriteLn(MenuFile, TextBoxes[i].Pos.y);
 	end;

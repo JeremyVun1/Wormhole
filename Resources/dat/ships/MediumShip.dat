@@ -39,10 +39,13 @@ AnchorPoints
 Tools
 3
 0
+White
 Ballistic
 1
+White
 Ballistic
 2
+White
 Ballistic
 Emitters
 1
@@ -53,8 +56,8 @@ Thruster
 0.6
 7
 6
-ColorOrange
-ColorCrimson
+Orange
+Crimson
 
 //2:      /2\
 //1:   [0][ ][1]
@@ -94,6 +97,7 @@ ColorCrimson
 //Tools
 //Number of tools
 //AnchorPoint Index
+//Tool Color
 //AmmoType
 
 //Emitters
@@ -105,3 +109,5 @@ ColorCrimson
 //Particle Expiry
 //Particle Size (in relative box unit lengths)
 //Particle TurnRate
+//Particle Color 1
+//Particle Color 2

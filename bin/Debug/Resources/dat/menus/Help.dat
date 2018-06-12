@@ -4,27 +4,35 @@ Help
 TextBoxes
 8
 Space Command has detected an anomolous signal
+White
  1.000000015E-01
  2.500000000E-01
 in the area and you have been ordered to investigate.
+White
  1.000000015E-01
  3.000000119E-01
 Generic enemies are coming through a wormhole to
+White
  1.000000015E-01
  4.000000060E-01
 cause mischief. Destroy the wormhole and save the
+White
  1.000000015E-01
  4.499999881E-01
 world before they engulf us all.
+White
  1.000000015E-01
  5.000000000E-01
 Collect and use powerups dropped by their ships
+White
  1.000000015E-01
  6.000000238E-01
 when they are destroyed.
+White
  1.000000015E-01
  6.499999762E-01
 Move [W][A][S][D] | Fire [SPACE] | Powerup [X]
+White
  1.000000015E-01
  7.300000191E-01
 Buttons
@@ -37,3 +45,6 @@ Back
 NavTo
 MenuKind
 Root
+White
+Grey
+White

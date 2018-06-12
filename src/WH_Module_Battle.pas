@@ -1871,8 +1871,11 @@ end;
 //Setup the player Ship
 //SetupPlayerUnit(ShipData, ShipKind);
 procedure SetupPlayerShip(var Ship: ShipData; const ShipKind: ShipType);
+var
+	BaseColor: LongWord;
 begin
-	Ship := CreateShip(ShipKind, ColorAqua, GetStartingPosition(), HumanPlayer);
+	BaseColor := GetOwnerColor(PlayerColor);
+	Ship := CreateShip(ShipKind, BaseColor, GetStartingPosition(), HumanPlayer);
 	AssertShipPointers(Ship);
 
 	//player specific values placeholder

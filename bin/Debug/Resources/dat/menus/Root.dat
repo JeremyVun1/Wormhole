@@ -13,6 +13,9 @@ Play
 NavTo
 MenuKind
 Select
+White
+Grey
+White
 Options
  4.000000060E-01
  4.600000083E-01
@@ -21,6 +24,9 @@ Options
 NavTo
 MenuKind
 Options
+White
+Grey
+White
 HighScores
  4.000000060E-01
  5.400000215E-01
@@ -29,6 +35,9 @@ HighScores
 NavTo
 MenuKind
 HighScores
+White
+Grey
+White
 Help
  4.000000060E-01
  6.200000048E-01
@@ -37,6 +46,9 @@ Help
 NavTo
 MenuKind
 Help
+White
+Grey
+White
 Quit
  4.000000060E-01
  6.999999881E-01
@@ -45,3 +57,6 @@ Quit
 Quit
 MenuKind
 Quit
+White
+Grey
+White

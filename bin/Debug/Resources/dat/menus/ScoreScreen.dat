@@ -2,19 +2,7 @@ ScoreScreen
 MenuName
 Game Over 
 TextBoxes
-4
-You Win
- 4.300000072E-01
- 3.499999940E-01
-NEW HIGHSCORE!
- 3.600000143E-01
- 4.000000060E-01
-Your Score: 5
- 3.799999952E-01
- 5.000000000E-01
-You Survived for: 12 seconds
- 2.800000012E-01
- 6.000000238E-01
+0
 Buttons
 1
 Main Menu
@@ -25,3 +13,6 @@ Main Menu
 NavTo
 MenuKind
 Root
+White
+Grey
+White
