@@ -2,6 +2,6 @@ Free Pascal Compiler version 3.0.4 [2017/10/06] for i386
 Copyright (c) 1993-2017 by Florian Klaempfl and others
 Target OS: Win32 for i386
 Compiling .\src\.\Wormhole.pas
-Compiling .\src\WH_Module_Menu.pas
+Compiling .\src\WH_Module_Interface.pas
 Linking .\bin\Debug\Wormhole.exe
-761 lines compiled, 0.3 sec, 256496 bytes code, 7252 bytes data
+115 lines compiled, 0.3 sec, 258032 bytes code, 7252 bytes data

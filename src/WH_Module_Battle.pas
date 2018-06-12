@@ -6,7 +6,7 @@ uses SysUtils, SwinGame, sgBackEndTypes, WH_Factory_Battle, WH_Settings, WH_Fact
 
 //Call Game Battle Module
 //MainGame(DifficultyType, ShipType): ReceiveData
-function MainGame(const Difficulty: DifficultyType; const ShipKind: ShipType): ReceiveData;
+function MainGame(const Send: SendData): ReceiveData;
 
 implementation
 
@@ -1815,7 +1815,7 @@ end;
 
 //Handles player input to the game state
 //HandleGameInput(ShipData, InventoryArray);
-procedure HandleGameInput(var Ship: ShipData; var Inventory: InventoryArray);
+procedure HandleGameInput(var Ship: ShipData; var Inventory: InventoryArray; const RotationControl: RotationControlType);
 begin
 	ProcessEvents();
 
@@ -2004,7 +2004,7 @@ end;
 // MainGame()
 //////////////////
 
-function MainGame(const Difficulty: DifficultyType; const ShipKind: ShipType): ReceiveData;
+function MainGame(const Send: SendData): ReceiveData;
 var
 	GameModule: Game;
 	GameTime, EndDelay: Timer;
@@ -2015,7 +2015,7 @@ begin
 	PlayMusic('GameMusic');
 
 	try
-		SetupGame(GameModule, Difficulty, ShipKind);
+		SetupGame(GameModule, Send.Difficulty, Send.ShipClass);
 		GameTime := CreateTimer();
 		EndDelay := CreateTimer();
 		StartTimer(GameTime);
@@ -2027,11 +2027,11 @@ begin
 	repeat
 		ClearScreen(ColorBlack);
 
-		HandleGameInput(GameModule.PlayerData.Ship, GameModule.PlayerData.Inventory);
-		HandleGameState(GameModule.PlayerData, GameModule.LevelData, GameModule.NPCData, Difficulty);
-		HandleNPCSpawning(GameModule.NPCData, Difficulty, GameModule.LevelData.SpawnTimer);
-		UpdateGamePositions(GameModule, Difficulty);
-		DrawGame(GameModule.PlayerData, GameModule.NPCData, GameModule.LevelData, Difficulty);
+		HandleGameInput(GameModule.PlayerData.Ship, GameModule.PlayerData.Inventory, Send.RotationControl);
+		HandleGameState(GameModule.PlayerData, GameModule.LevelData, GameModule.NPCData, Send.Difficulty);
+		HandleNPCSpawning(GameModule.NPCData, Send.Difficulty, GameModule.LevelData.SpawnTimer);
+		UpdateGamePositions(GameModule, Send.Difficulty);
+		DrawGame(GameModule.PlayerData, GameModule.NPCData, GameModule.LevelData, Send.Difficulty);
 
 		//Handle end game condition
 		Win := IsPlayerWin(GameModule.LevelData.Wormhole, GameModule.PlayerData.Ship);

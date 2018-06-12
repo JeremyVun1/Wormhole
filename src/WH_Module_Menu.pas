@@ -288,8 +288,8 @@ begin
 end;
 
 //Handles select menu behaviour for saving and sending player selected data to the game interface
-//HandleSelectMenuButtons(ButtonArray, SendData)
-procedure HandleSelecMenuButtons(var Buttons: ButtonArray; var Send: SendData);
+//HandleSaveButtons(ButtonArray, SendData)
+procedure HandleSaveButtons(var Buttons: ButtonArray; var Send: SendData);
 var
 	Saved: Boolean = False;
 	i: Integer;
@@ -305,6 +305,7 @@ begin
 				case Buttons[i].Payload.Kind of
 					Difficulty: ReadStr(Buttons[i].Payload.Str, Send.Difficulty);
 					ShipClass: ReadStr(Buttons[i].Payload.Str, Send.ShipClass);
+					RotationControl: ReadStr(Buttons[i].Payload.Str, Send.RotationControl);
 				end;
 				Saved := True;
 			except
@@ -327,7 +328,7 @@ procedure HandleMenuState(var MenuData: MenuData; var GameInterfaceSend: SendDat
 begin
 	HandleBackground(MenuData.Background);
 	HandleMenuChange(MenuData.CurrentMenu^.Buttons, MenuData.CurrentMenu, MenuData.Menus);	
-	HandleSelecMenuButtons(MenuData.CurrentMenu^.Buttons, GameInterfaceSend);
+	HandleSaveButtons(MenuData.CurrentMenu^.Buttons, GameInterfaceSend);
 end;
 
 //////////////////
@@ -691,6 +692,7 @@ begin
 	PlayMusic('MenuMusic');
 
 	SetupMenuData(MenuModule.Menus);
+	LoadLastSettings(GameInterface.Send);
 	MenuModule.Background := CreateBackground(WINDOW_WIDTH, WINDOW_HEIGHT, 0.5);
 	PlayerName := GetPlayerName(MenuModule.Menus);
 	ChangeCurrentMenu(Root, MenuModule.CurrentMenu, MenuModule.Menus);
@@ -738,7 +740,7 @@ begin
 		////
 
 		DrawMenu(MenuModule.CurrentMenu^, MenuModule.Background);
-		//DebugMenus(MenuModule.Menus);
+		DebugMenus(MenuModule.Menus);
 		RefreshScreen(FPS);
 	until WindowCloseRequested() or QuitBtnClicked(MenuModule.CurrentMenu^.Buttons);
 

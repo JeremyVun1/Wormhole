@@ -2,21 +2,25 @@ Options
 MenuName
 Options
 TextBoxes
-2
+3
 Your Name
 White
- 4.199999869E-01
+ 2.099999934E-01
  3.000000119E-01
 Volume
 White
- 4.449999928E-01
- 5.400000215E-01
+ 6.800000072E-01
+ 3.000000119E-01
+Ship Turning
+White
+ 2.049999982E-01
+ 5.500000119E-01
 Buttons
-4
- 
- 2.500000000E-01
+6
+
+ 1.000000015E-01
  3.799999952E-01
- 5.000000000E-01
+ 4.000000060E-01
  7.999999821E-02
 TextInput
 Text
@@ -24,9 +28,9 @@ Your Name
 Black
 White
 Black
- 
- 3.499999940E-01
- 6.000000238E-01
+
+ 5.899999738E-01
+ 3.700000048E-01
  3.000000119E-01
  1.000000015E-01
 Save
@@ -35,9 +39,9 @@ None
 White
 Grey
 White
- 
- 3.499999940E-01
- 6.000000238E-01
+
+ 5.899999738E-01
+ 3.700000048E-01
  3.000000119E-01
  1.000000015E-01
 Save
@@ -54,6 +58,28 @@ Back
 NavTo
 MenuKind
 Root
+White
+Grey
+White
+Mouse
+ 1.400000006E-01
+ 6.399999857E-01
+ 1.500000060E-01
+ 7.000000030E-02
+Save
+RotationControl
+Mouse
+White
+Grey
+White
+Keyboard
+ 3.199999928E-01
+ 6.399999857E-01
+ 1.500000060E-01
+ 7.000000030E-02
+Save
+RotationControl
+Keyboard
 White
 Grey
 White

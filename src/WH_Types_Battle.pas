@@ -11,6 +11,7 @@ type
 	ItemType = (Invincible, Speed, Damage);
 	NumberPopupType = (DamagePopup, PointsPopup);
 	AIType = (Static, Chase, Erratic);
+	RotationControlType = (Mouse, Keyboard);
 
 	ShipColorArray = array[0..3] of LongWord;
 	Point2DArray = array of Point2D;

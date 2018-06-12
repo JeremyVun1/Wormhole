@@ -5,12 +5,13 @@ unit WH_Types_Interface;
 ///////////
 interface
 
-uses WH_Types_Shared;
+uses WH_Types_Shared, WH_Types_Battle;
 
 type
 	SendData = record
 		Difficulty: DifficultyType;
 		ShipClass: ShipType;
+		RotationControl: RotationControlType;
 	end;
 
 	ReceiveData = record
