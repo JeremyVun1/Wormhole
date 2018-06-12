@@ -1,0 +1,6 @@
+
+out.log
+bin/Debug/Resources/dat/menus/HighScores.dat
+bin/Debug/Resources/dat/menus/ScoreScreen.dat
+*.o
+*.exe

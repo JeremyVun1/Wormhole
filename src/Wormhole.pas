@@ -300,8 +300,8 @@ const
 	NOVICE_MODIFIER = 0.6;
 	INTERMEDIATE_MODIFIER = 0.75;
 	EXPERT_MODIFIER = 0.9;
-	SPIN_DECAY = 0.985;
-	SPEED_DECAY = 0.985;
+	SPIN_DECAY = 0.977;
+	SPEED_DECAY = 0.977;
 	MAX_EXPLOSION_VELOCITY = 8;
 	MAX_EXPLOSION_TURN_RATE = 300; //degrees per second
 	LOOT_TURN_RATE = 2; //degrees per second
@@ -309,7 +309,7 @@ const
 	WORMHOLE_BASE_RADIUS = PLAY_WIDTH/15;
 	WORMHOLE_BASE_HEALTH = 60;
 	WORMHOLE_CONSTANT_GROWTH = 1; //per second
-	WORMHOLE_GROWTH_RATE = 5; //Percent grwoth per second
+	WORMHOLE_GROWTH_RATE = 4; //Percent grwoth per second
 	NUMBER_POPUP_VELOCITY = 1;
 	NUMBER_POPUP_EXPIRY = 4; //in seconds
 	AGRO_RANGE = WINDOW_WIDTH/2;
@@ -319,7 +319,7 @@ const
 	//SHIP
 	LIGHT_MODIFIER = 1.5;
 	MEDIUM_MODIFIER = 1.0;
-	HEAVY_MODIFIER = 0.5;
+	HEAVY_MODIFIER = 0.6;
 	LIGHT_HEALTH = 5;
 	MEDIUM_HEALTH = 10;
 	HEAVY_HEALTH = 20;
@@ -331,7 +331,7 @@ const
 	//MOVEMENT
 	BASE_MAX_VELOCITY = WINDOW_WIDTH/270;
 	BASE_ACCELERATION = BASE_MAX_VELOCITY/45;
-	BASE_TURN_RATE = 150; // degrees per second
+	BASE_TURN_RATE = 160; // degrees per second
 	BASE_STRAFE_MODIFIER = 1.2;
 	BASE_REVERSE_MODIFIER = 0.8;
 	BASE_FRICTION = 0.996;
@@ -342,7 +342,7 @@ const
 	//AMMO
 	BALLISTIC_DAMAGE = 1;
 	BALLISTIC_FIRE_RATE = 2; //shots per second
-	BALLISTIC_MAX_VELOCITY = WINDOW_WIDTH/180;
+	BALLISTIC_MAX_VELOCITY = WINDOW_WIDTH/170;
 	BALLISTIC_EXPIRY = 3; //seconds
 	BALLISTIC_LENGTH = LINE_LENGTH/4;
 
@@ -352,20 +352,17 @@ const
 
 //returns whether the user has clicked the quit button or not
 //QuitBtnClicked(MenuType, ButtonArray): Boolean
-function QuitBtnClicked(const MenuKind: MenuType; const Buttons: ButtonArray): Boolean;
+function QuitBtnClicked(const Buttons: ButtonArray): Boolean;
 var
 	i: Integer;
 begin
 	Result := False;
-	if (MenuKind = Root) then
+	for i:=0 to High(Buttons) do
 	begin
-		for i:=0 to High(Buttons) do
+		if (Buttons[i].Action = Quit) and (Buttons[i].Clicked = True) then
 		begin
-			if (Buttons[i].Action = Quit) and (Buttons[i].Clicked = True) then
-			begin
-				Result := True;
-				Exit;
-			end;
+			Result := True;
+			Exit;
 		end;
 	end;
 end;
@@ -609,7 +606,7 @@ begin
 		Novice: Result := NOVICE_MODIFIER;
 		Intermediate: Result := INTERMEDIATE_MODIFIER;
 		Expert: Result := EXPERT_MODIFIER;
-		else WriteLn('Cannot LoadNPC() - invalid Difficulty Kind');
+		else WriteLn('GetDifficultyModifier() - invalid Difficulty Kind');
 	end;
 end;
 
@@ -668,7 +665,7 @@ begin
 end;
 
 //Returns a random point2d within the play area around the origin (-PLAY_WIDTH/2 to +PLAY_WIDTH/2)
-//Option to offset in the positive direction by a percentage (0.5 offsets by 50%);
+//Option to offset by a percentage (0.5 offsets by 50%);
 //GetRandomPointWithin(single, single, single): Point2D;
 function GetRandomPointWithin(w, h: Single; OffsetOpt: Single = 0): Point2D;
 begin
@@ -683,7 +680,7 @@ begin
 	Result := 1;
 	case AmmoKind of
 		Ballistic: Result := BALLISTIC_DAMAGE;
-		//Missile: Result := 1/MISSILE_RELOAD;
+		//Missile: Result := MISSILE_DAMAGE;
 	end;
 end;
 
@@ -1591,7 +1588,7 @@ end;
 
 //Draws LinesArray Shape
 //DrawShape(LongWord, LinesArray)
-procedure DrawShape(const Color: LongWord; const Shape: LinesArray);
+procedure DrawShape(const Shape: LinesArray; const Color: LongWord);
 var
 	i: Integer;
 begin
@@ -1613,7 +1610,7 @@ begin
 		1: Color := Color2;
 	end;
 
-	DrawShape(Color, Shape);
+	DrawShape(Shape, Color);
 end;
 
 //Draws buff icons on the UI when they are active
@@ -1813,6 +1810,16 @@ begin
 	end;
 end;
 
+procedure DrawEmitterArray(const Emitters: EmitterDataArray; const SpeedBuff: Boolean);
+var
+	i: Integer;
+begin
+	for i:=0 to High(Emitters) do
+	begin
+		DrawEmitter(Emitters[i], SpeedBuff);
+	end;
+end;
+
 //Draw all ammo elements within the ammo list
 //DrawAmmoList(AmmoListArray, Boolean)
 procedure DrawAmmoList(const AmmoList: AmmoListArray; const DamageBuff: Boolean);
@@ -1829,15 +1836,14 @@ begin
 				False: color := AmmoList[i].Color;
 			end;
 
-			DrawShape(Color, AmmoList[i].Shape);
+			DrawShape(AmmoList[i].Shape, Color);
 		end;
 	end;
 end;
 
-//FIX THIS, IT"S NOT DRAWING MY TOOL????
 //Draws the tool shapes on the ship
-//DrawTools(ToolData);
-procedure DrawTools(const Tool: ToolData);
+//DrawTool(ToolData);
+procedure DrawTool(const Tool: ToolData);
 var
 	i: Integer;
 	AnchorPoint: Point2D;
@@ -1864,6 +1870,16 @@ begin
 	//DrawLine(ColorGreen, Tool.Anchor^.x, Tool.Anchor^.y, Tool.Anchor^.x + (Tool.Heading^.x * 20), Tool.Anchor^.y + (Tool.Heading^.y * 20));
 end;
 
+procedure DrawToolArray(const Tools: ToolDataArray);
+var
+	i: Integer;
+begin
+	for i:=0 to High(Tools) do
+	begin
+		DrawTool(Tools[i]);
+	end;
+end;
+
 //draws ammo that has been spawned by the tool
 //DrawToolAmmo(ToolDataArray, TimerPackage)
 procedure DrawToolAmmo(const Tools: ToolDataArray; const DamageBuff: Boolean);
@@ -1879,25 +1895,17 @@ end;
 //Ship level controller for drawing elements
 //DrawShip(ShipData)
 procedure DrawShip(const Ship: ShipData);
-var
-	i: Integer;
 begin
 	if (Ship.IsAlive) then
 	begin
 		//draw parent ship
-		DrawShape(Ship.Color[0], Ship.Shape);
+		DrawShape(Ship.Shape, Ship.Color[0]);
 
 		//draw tools
-		for i:=0 to High(Ship.Tool) do
-		begin
-			DrawTools(Ship.Tool[i]);
-		end;
+		DrawToolArray(Ship.Tool);
 
 		//draw emitters
-		for i:=0 to High(Ship.Emitter) do
-		begin
-			DrawEmitter(Ship.Emitter[i], IsSpeedBuff(Ship.Powerup));
-		end;
+		DrawEmitterArray(Ship.Emitter, IsSpeedBuff(Ship.Powerup));
 
 		//draw ammo
 		DrawToolAmmo(Ship.Tool, IsDamageBuff(Ship.Powerup));
@@ -1962,34 +1970,39 @@ begin
 	DrawStars(Background.Stars);
 end;
 
-procedure DrawLoot(const Loot: LootData);
-begin	
-	if (Length(Loot.Color) = 2) and not (Loot.PickedUp) then
+procedure DrawDebrisList(const DebrisList: DebrisListArray);
+var
+	i: Integer;
+begin
+	for i:=0 to High(DebrisList) do
 	begin
-		DrawTwinklingShape(Loot.Shape, Loot.Color[0], Loot.Color[1]);
+		DrawShape(DebrisList[i].Shape, DebrisList[i].Color);
+	end;
+end;
+
+procedure DrawLootList(const LootList: LootDataArray);
+var
+	i: Integer;
+begin
+	for i:=0 to High(LootList) do
+	begin
+		if (Length(LootList[i].Color) = 2) and not (LootList[i].PickedUp) then
+		begin
+			DrawTwinklingShape(LootList[i].Shape, LootList[i].Color[0], LootList[i].Color[1]);
+		end;
 	end;
 end;
 
 //Draws level elements
 //DrawLevel(Level)
 procedure DrawLevel(const LevelData: Level);
-var
-	i: Integer;
 begin
 	DrawBackground(LevelData.Background);
 	DrawWormhole(LevelData.Wormhole.Color, LevelData.Wormhole.Shape, LevelData.Wormhole.IsAlive);
 
-	//Draw Debris
-	for i:=0 to High(LevelData.DebrisList) do
-	begin
-		DrawShape(LevelData.DebrisList[i].Color, LevelData.DebrisList[i].Shape);
-	end;
+	DrawDebrisList(LevelData.DebrisList);
 
-	//Draw Loot pickups
-	for i:=0 to High(LevelData.LootList) do
-	begin
-		DrawLoot(LevelData.LootList[i]);
-	end;
+	DrawLootList(LevelData.LootList);
 end;
 
 procedure DebugShip(const Ship: ShipData);
@@ -2057,7 +2070,7 @@ begin
 	end
 end;
 
-//Clamps Velocity of Ship object to it's Max Velocity in any direction
+//Clamps Velocity to it's Max Velocity in any direction
 //ClampVelocity(Ship, Boolean)
 procedure ClampVelocity(var Move: MovementModel; SpeedBuff: Boolean = False);
 var
@@ -2105,10 +2118,10 @@ procedure UpdateTool(var Tool: ToolData);
 var
 	i: Integer;
 begin
-	for i:=0 to High(Tool.Shape) do
-	begin
+	//for i:=0 to High(Tool.Shape) do
+	//begin
 		//writeln(' cx1: ', Tool.Shape[i].StartPoint.x, ' cy1: ', Tool.Shape[i].StartPoint.y, ' cx2: ', Tool.Shape[i].EndPoint.x, ' cy2: ', Tool.Shape[i].EndPoint.y)
-	end;
+	//end;
 
 	//update tool ammo
 	for i:=0 to High(Tool.SpawnedAmmo) do
@@ -2403,7 +2416,6 @@ end;
 procedure UpdatePlayer(var PlayerData: Player);
 begin
 	UpdateShip(PlayerData.Ship);
-	UpdateInventoryBmp(PlayerData.Inventory, PlayerData.UI);
 	UpdateNumberPopups(PlayerData.NumberPopups);
 end;
 
@@ -2482,7 +2494,7 @@ begin
 		begin
 			if (LootList[i].PickedUp) then
 			begin
-				//RemoveIndex(LootList, i);
+				RemoveIndex(LootList, i);
 			end;
 		end;
 	end;
@@ -3112,6 +3124,8 @@ begin
 	xCamMargin := PLAY_WIDTH/2-(WINDOW_WIDTH/2);
     yCamMargin := PLAY_HEIGHT/2-(WINDOW_HEIGHT/2);
 
+    //refactor using case statements
+
 	//check corners
 	if (TargetPos.x < -xCamMargin) and (TargetPos.y < -yCamMargin) then //top-left
 	begin
@@ -3266,7 +3280,7 @@ end;
 
 //initialises and returns a movement model for debris
 //GetDebrismovement(Point2D): MovementModel
-function GetDebrisNovement(const Pos: Point2D): MovementModel;
+function GetDebrisMovement(const Pos: Point2D): MovementModel;
 begin	
 	Result.Vel.x := (Random(MAX_EXPLOSION_VElOCITY*10)-(MAX_EXPLOSION_VElOCITY*10 div 2))/10;
 	Result.Vel.y := (Random(MAX_EXPLOSION_VElOCITY*10)-(MAX_EXPLOSION_VElOCITY*10 div 2))/10;
@@ -3284,7 +3298,7 @@ begin
 	Result.Shape[0] := Line;
 
 	//debris specific values
-	Result.Move := GetDebrisNovement(LineMidPoint(Result.Shape[0]));
+	Result.Move := GetDebrisMovement(LineMidPoint(Result.Shape[0]));
 	Result.Color := Color;
 	Result.IsAlive := True;
 end;
@@ -3489,6 +3503,7 @@ begin
 	if (PlayerData.Ship.IsAlive) then
 	begin
 		HandleLootPickup(PlayerData.Ship, PlayerData.Inventory, LevelData.LootList);
+		UpdateInventoryBmp(PlayerData.Inventory, PlayerData.UI);
 		HandleBuffState(PlayerData.Ship.Powerup, PlayerData.Inventory);
 		HandleBuffTimers(PlayerData.Ship.Powerup);
 	end;
@@ -4202,8 +4217,8 @@ begin
 end;
 
 //populates and returns scorescreen textboxes
-//GetScoreScreen(ReceiveData, Boolean): TextBoxArray
-function GetScoreScreen(const Receive: ReceiveData; const HighScore: Boolean): TextBoxArray;
+//CreateScoreScreen(ReceiveData, Boolean): TextBoxArray
+function CreateScoreScreen(const Receive: ReceiveData; const HighScore: Boolean): TextBoxArray;
 var
 	TextBoxes: TextBoxArray;
 begin
@@ -4247,25 +4262,22 @@ end;
 
 //returns whether the player has requested to start the Root Game
 //CheckGameStart(MenuType, ButtonArray): Boolean
-function CheckGameStart(const MenuKind: MenuType; var Buttons: ButtonArray): Boolean;
+function CheckGameStart(var Buttons: ButtonArray): Boolean;
 var
 	i: Integer;
 begin
 	Result := False;
-	if (MenuKind = Select) then
+	for i:=0 to High(Buttons) do
 	begin
-		for i:=0 to High(Buttons) do
+		if (Buttons[i].Action = Play) and (Buttons[i].Clicked = True) then
 		begin
-			if (Buttons[i].Action = Play) and (Buttons[i].Clicked = True) then
+			Buttons[i].Clicked := False;
+			if AllOptionsSelected(Buttons) then
 			begin
-				Buttons[i].Clicked := False;
-				if AllOptionsSelected(Buttons) then
-				begin
-					Result := True;
-				end
-				else PlaySoundEffect('Error');
-				Exit;
-			end;
+				Result := True;
+			end
+			else PlaySoundEffect('Error');
+			Exit;
 		end;
 	end;
 end;
@@ -4615,7 +4627,7 @@ end;
 
 //Main controller for setting up menudata
 //SetupMenuData(MenuArray, MenuPtr)
-procedure SetupMenuData(var Menus: MenuArray; var CurrentMenu: MenuPtr);
+procedure SetupMenuData(var Menus: MenuArray);
 var
 	i: Integer;
 begin
@@ -4625,9 +4637,6 @@ begin
 	begin
 		Menus[i] := GetMenuFromFile(MenuType(i));
 	end;
-
-	//set initial menu to root
-	ChangeCurrentMenu(Root, CurrentMenu, Menus);
 end;
 
 //Create starry background for the menus
@@ -4652,6 +4661,17 @@ begin
 			Result := GetButtonNamedPayload(Menus[i].Buttons, 'PlayerName');
 			Exit;
 		end;
+	end;
+end;
+
+//menu debugging
+//DebugMenus(MenuArray)
+procedure DebugMenus(var Menus: MenuArray);
+begin
+	//reload menu from file
+	if KeyTyped(RKey) then
+	begin
+		SetupMenuData(Menus);
 	end;
 end;
 
@@ -4752,7 +4772,6 @@ procedure Main();
 var
 	MenuModule: MenuData;
 	GameInterface: GameInterfaceData;
-	Quit: Boolean = False;
 	HighScore: Boolean;
 	PlayerName: String;
 begin
@@ -4762,9 +4781,10 @@ begin
 	LoadResourceBundleNamed('menu_module', 'menu_bundle.txt', true);
 	PlayMusic('MenuMusic');
 
-	SetupMenuData(MenuModule.Menus, MenuModule.CurrentMenu);
+	SetupMenuData(MenuModule.Menus);
 	SetupMenuBackground(MenuModule.Background);
 	PlayerName := GetPlayerName(MenuModule.Menus);
+	ChangeCurrentMenu(Root, MenuModule.CurrentMenu, MenuModule.Menus);
 
 	repeat
 		ClearScreen(ColorBlack);
@@ -4774,14 +4794,13 @@ begin
 		////
 		//Call Main Game block
 		//
-		if (CheckGameStart(MenuModule.CurrentMenu^.MenuKind, MenuModule.CurrentMenu^.Buttons)) then
+		if (CheckGameStart(MenuModule.CurrentMenu^.Buttons)) then
 		begin
 			//start maingame();
 			ReleaseAllTimers();
 			StopMusic();
 			ReleaseResourceBundle('menu_module');
 			GameInterface.Receive := MainGameInterface(GameInterface.Send);
-
 			
 			//After game procedures
 			StopMusic();
@@ -4790,6 +4809,7 @@ begin
 			MoveCameraTo(0,0);
 			SetupMenuBackground(MenuModule.Background);
 
+			//skip score screens if the player closed the window
 			if not WindowCloseRequested() then
 			begin
 				//manage highscores
@@ -4801,7 +4821,7 @@ begin
 
 				//dynamically build and display score screen
 				ChangeCurrentMenu(ScoreScreen, MenuModule.CurrentMenu, MenuModule.Menus);
-				MenuModule.CurrentMenu^.TextBoxes := GetScoreScreen(GameInterface.Receive, HighScore);
+				MenuModule.CurrentMenu^.TextBoxes := CreateScoreScreen(GameInterface.Receive, HighScore);
 			end;
 		end;
 		//
@@ -4809,11 +4829,9 @@ begin
 		////
 
 		DrawMenu(MenuModule.CurrentMenu^, MenuModule.Background);
-
-		//Quit event listener
-		Quit := QuitBtnClicked(MenuModule.CurrentMenu^.MenuKind, MenuModule.CurrentMenu^.Buttons);
+		//DebugMenus(MenuModule.Menus);
 		RefreshScreen(FPS);
-	until WindowCloseRequested() or Quit;
+	until WindowCloseRequested() or QuitBtnClicked(MenuModule.CurrentMenu^.Buttons);
 
 	UpdateMenuFiles(MenuModule.Menus);
 
