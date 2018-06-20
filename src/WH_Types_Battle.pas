@@ -11,13 +11,34 @@ type
 	ItemType = (Invincible, Speed, Damage);
 	NumberPopupType = (DamagePopup, PointsPopup);
 	AIType = (Static, Chase, Erratic);
-	RotationControlType = (Mouse, Keyboard);
 
 	ShipColorArray = array[0..3] of LongWord;
 	Point2DArray = array of Point2D;
 	AnchorPtr = ^Point2D;
 	AnchorArrayPtr = ^Point2DArray;
 	HeadingPtr = ^Vector;
+
+	MouseButtonMap = record
+		FireBallistic: MouseButton;
+		ActivatePowerup: MouseButton;
+	end;
+
+	KeyCodeMap = record
+		RotateLeft: array[0..1] of KeyCode;
+		RotateRight: array[0..1] of KeyCode;
+		StrafeLeft: array[0..1] of KeyCode;
+		StrafeRight: array[0..1] of KeyCode;
+		AccelForward: array[0..1] of KeyCode;
+		AccelBackward: array[0..1] of KeyCode;
+		FireBallistic: array[0..1] of KeyCode;
+		ActivatePowerup: array[0..1] of KeyCode;
+	end;
+
+	ControlMapData = record
+		ControlKind: ShipControlType;
+		Keyboard: KeyCodeMap;
+		Mouse: MouseButtonMap;
+	end;
 
 	TimerPackage = record
 		Clock: Timer;
@@ -198,7 +219,8 @@ type
 		SpawnTimer: Timer;
 	end;
 
-	Game = record
+	Game = record		
+		ControlMap: ControlMapData;
 		LevelData: Level;
 		PlayerData: Player;
 		NPCData: NPCTierArray;

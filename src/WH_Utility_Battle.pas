@@ -199,39 +199,76 @@ procedure ApplyFriction(var Move: MovementModel);
 procedure AssertShipPointers(var Ship: ShipData);
 
 //Iterate backwards through the array to remove dead and expired entities
-//Inventory Items
 procedure RemoveDead(var Inventory: InventoryArray);
-//Number popups
 procedure RemoveDead(var NumberPopups: NumberPopupArray);
-//Loot
 procedure RemoveDead(var LootList: LootDataArray); Overload;
-//Ammo
 procedure RemoveDead(var SpawnedAmmo: AmmoListArray); Overload;
-//Particles
 procedure RemoveDead(var Particlearray: ParticleDataArray); Overload;
-//Debris
 procedure RemoveDead(var DebrisList: DebrisListarray); Overload;
-//Ships
 procedure RemoveDead(var ShipArray: ShipDataArray); Overload;
 
 //returns whether player has made a command input
-function StrafeLeftInput(): Boolean;
-function StrafeRightInput(): Boolean;
-function AccelerateForwardInput(): Boolean;
-function AccelerateBackwardInput(): Boolean;
-function RotateRightInput(): Boolean;
-function RotateLeftInput(): Boolean;
-function FireBallisticInput(): Boolean;
-function ActivatePowerupInput(): Boolean;
+function StrafeLeftInput(const ControlMap: ControlMapData): Boolean;
+function StrafeRightInput(const ControlMap: ControlMapData): Boolean;
+function AccelForwardInput(const ControlMap: ControlMapData): Boolean;
+function AccelBackwardInput(const ControlMap: ControlMapData): Boolean;
+function RotateRightInput(const ControlMap: ControlMapData): Boolean;
+function RotateLeftInput(const ControlMap: ControlMapData): Boolean;
+function FireBallisticInput(const ControlMap: ControlMapData): Boolean;
+function ActivatePowerupInput(const ControlMap: ControlMapData): Boolean;
 
 //returns an empty inventory record
 //GetEmptyInventory(): InventoryArray
 function GetEmptyInventory(): InventoryArray;
 
+//returns control maps
+function GetControlMap(const ShipControl: ShipControlType): ControlMapData;
+
 ///////////
 //private
 ///////////
 implementation
+
+function MouseButtonMap(): MouseButtonMap;
+begin
+	Result.FireBallistic := LeftButton;
+	Result.ActivatePowerup := RightButton;
+end;
+
+function KeyCodeMap(): KeyCodeMap;
+begin	
+	Result.RotateLeft[0] := AKey;
+	Result.RotateLeft[1] := LeftKey;
+
+	Result.RotateRight[0] := DKey;
+	Result.RotateRight[1] := RightKey;
+
+	Result.StrafeLeft[0] := QKey;
+	Result.StrafeLeft[1] := QKey;
+
+	Result.StrafeRight[0] := EKey;
+	Result.StrafeRight[1] := EKey;
+
+	Result.AccelForward[0] := WKey;
+	Result.AccelForward[1] := UpKey;
+
+	Result.AccelBackward[0] := SKey;
+	Result.AccelBackward[1] := DownKey;
+
+	Result.FireBallistic[0] := SpaceKey;
+	Result.FireBallistic[1] := SpaceKey;
+
+	Result.ActivatePowerup[0] := XKey;
+	Result.ActivatePowerup[1] := XKey;
+end;
+
+function GetControlMap(const ShipControl: ShipControlType): ControlMapData;
+begin
+	Result.Keyboard := KeyCodeMap();
+	Result.Mouse := MouseButtonMap();
+
+	Result.ControlKind := ShipControl;
+end;
 
 function BoxGridToPoint(Point: Point2D): Point2D;
 var
@@ -958,75 +995,83 @@ begin
 	end;
 end;
 
-function StrafeLeftInput(): Boolean;
+function MouseInput(const Button: MouseButton): Boolean;
 begin
-	Result := False;
-	If KeyDown(QKey) then
+	if MouseClicked(Button) then
 	begin
 		Result := True;
+	end
+	else Result := False;
+end;
+
+function KeyInput(const Key: array of KeyCode): Boolean;
+var
+	i: Integer;
+begin
+	Result := False;
+	for i:=0 to High(Key) do
+	begin
+		if KeyDown(Key[i]) then
+		begin
+		 	Result := True;
+		 	Exit;
+		 end;
 	end;
 end;
 
-function StrafeRightInput(): Boolean;
+function StrafeLeftInput(const ControlMap: ControlMapData): Boolean;
 begin
-	Result := False;
-	If KeyDown(EKey) then
-	begin
-		Result := True;
+	Result := KeyInput(ControlMap.Keyboard.StrafeLeft);
+end;
+
+function StrafeRightInput(const ControlMap: ControlMapData): Boolean;
+begin
+	Result := KeyInput(ControlMap.Keyboard.StrafeRight);
+end;
+
+function AccelForwardInput(const ControlMap: ControlMapData): Boolean;
+begin
+	Result := KeyInput(ControlMap.Keyboard.AccelForward);
+end;
+
+function AccelBackwardInput(const ControlMap: ControlMapData): Boolean;
+begin
+	Result := KeyInput(ControlMap.Keyboard.AccelBackward);
+end;
+
+function RotateRightInput(const ControlMap: ControlMapData): Boolean;
+begin
+	Result := KeyInput(ControlMap.Keyboard.RotateRight);
+end;
+
+function RotateLeftInput(const ControlMap: ControlMapData): Boolean;
+begin
+	Result := KeyInput(ControlMap.Keyboard.RotateLeft);
+end;
+
+function FireBallisticInput(const ControlMap: ControlMapData): Boolean;
+begin
+	case ControlMap.ControlKind of
+		Mouse: Result := MouseInput(ControlMap.Mouse.FireBallistic);
+		Keyboard: Result := KeyInput(ControlMap.Keyboard.FireBallistic);
+		else
+		begin
+			WriteLn('FireBallisticInput() - Invalid ControlType');
+			Result := False;
+		end;
 	end;
 end;
 
-function AccelerateForwardInput(): Boolean;
+function ActivatePowerupInput(const ControlMap: ControlMapData): Boolean;
 begin
-	Result := False;
-	If KeyDown(WKey) or KeyDown(UpKey) then
-	begin
-		Result := True;
-	end;
-end;
-
-function AccelerateBackwardInput(): Boolean;
-begin
-	Result := False;
-	If KeyDown(SKey) or KeyDown(Downkey) then
-	begin
-		Result := True;
-	end;
-end;
-
-function RotateRightInput(): Boolean;
-begin
-	Result := False;
-	If KeyDown(DKey) or KeyDown(RightKey) then
-	begin
-		Result := True;
-	end;
-end;
-
-function RotateLeftInput(): Boolean;
-begin
-	Result := False;
-	If KeyDown(AKey) or KeyDown(LeftKey) then
-	begin
-		Result := True;
-	end;
-end;
-
-function FireBallisticInput(): Boolean;
-begin
-	Result := False;
-	If KeyDown(SpaceKey) then
-	begin
-		Result := True;
-	end;
-end;
-
-function ActivatePowerupInput(): Boolean;
-begin
-	Result := False;
-	If KeyDown(XKey) then 
-	begin
-		Result := True;
+	case ControlMap.ControlKind of
+		Mouse: Result := MouseInput(ControlMap.Mouse.ActivatePowerup);
+		Keyboard: Result := KeyInput(ControlMap.Keyboard.ActivatePowerup);
+		else
+		begin
+			WriteLn('ActivatePowerupInput() - Invalid ControlType');
+			Result := False;
+		end;
 	end;
 end;
 

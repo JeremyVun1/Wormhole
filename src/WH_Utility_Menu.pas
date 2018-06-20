@@ -206,7 +206,7 @@ begin
 	for i:=0 to High(Buttons) do
 	begin
 		if (Buttons[i].Payload.Kind = Kind) then
-			Buttons[i].Highlighted := False;
+			Buttons[i].Selected := False;
 	end;
 
 	Result := Buttons;

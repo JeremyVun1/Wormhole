@@ -16,6 +16,7 @@ Select
 White
 Grey
 White
+FALSE
 Options
  4.000000060E-01
  4.600000083E-01
@@ -27,6 +28,7 @@ Options
 White
 Grey
 White
+FALSE
 HighScores
  4.000000060E-01
  5.400000215E-01
@@ -38,6 +40,7 @@ HighScores
 White
 Grey
 White
+FALSE
 Help
  4.000000060E-01
  6.200000048E-01
@@ -49,6 +52,7 @@ Help
 White
 Grey
 White
+FALSE
 Quit
  4.000000060E-01
  6.999999881E-01
@@ -60,3 +64,4 @@ Quit
 White
 Grey
 White
+FALSE

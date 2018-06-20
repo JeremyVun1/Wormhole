@@ -47,7 +47,7 @@ begin
 		//draw all other buttons
 		else
 		begin
-			case Buttons[i].Highlighted of
+			case Buttons[i].Selected of
 				True: DrawButton(Buttons[i].ButtonName, Pos, Extents, ColorBlack, ColorYellow, ColorBlack);
 				False: DrawButton(Buttons[i].ButtonName, Pos, Extents, Buttons[i].Color.Font, Buttons[i].Color.Fill, Buttons[i].Color.Border);
 			end;
@@ -218,7 +218,7 @@ begin
 			
 			for j:=0 to High(Buttons) do
 			begin
-				if (Buttons[j].Payload.Kind = PayloadKind) and (Buttons[j].Highlighted) then
+				if (Buttons[j].Payload.Kind = PayloadKind) and (Buttons[j].Selected) then
 				begin
 					SelectedCount += 1;
 					Break;
@@ -305,7 +305,7 @@ begin
 				case Buttons[i].Payload.Kind of
 					Difficulty: ReadStr(Buttons[i].Payload.Str, Send.Difficulty);
 					ShipClass: ReadStr(Buttons[i].Payload.Str, Send.ShipClass);
-					RotationControl: ReadStr(Buttons[i].Payload.Str, Send.RotationControl);
+					ShipControl: ReadStr(Buttons[i].Payload.Str, Send.ShipControl);
 				end;
 				Saved := True;
 			except
@@ -316,7 +316,7 @@ begin
 			if (Saved) then
 			begin				
 				Buttons := ClearBtnGroupHighlights(Buttons, Buttons[i].Payload.Kind);
-				Buttons[i].Highlighted := True;
+				Buttons[i].Selected := True;
 			end;
 		end;
 	end;
@@ -433,6 +433,56 @@ begin
 end;
 
 //////////////////
+// Setup Options
+//////////////////
+
+//Get settings from buttons which are selected
+//SelectedButtonSettings(ButtonArray, SendData)
+procedure SelectedButtonSettings(const Buttons: ButtonArray; var Send: SendData);
+var
+	i: Integer;
+begin
+	for i:=0 to High(Buttons) do
+	begin
+		if (Buttons[i].Action = Save) and (Buttons[i].Selected) then
+		begin
+			case Buttons[i].Payload.Kind of
+				Difficulty: ReadStr(Buttons[i].Payload.Str, Send.Difficulty);
+				ShipClass: ReadStr(Buttons[i].Payload.Str, Send.ShipClass);
+				ShipControl: ReadStr(Buttons[i].Payload.Str, Send.ShipControl);
+				else
+				begin
+					WriteLn('GetSelectedSettings() - Invalid payload type');
+					Buttons[i].Selected := False;
+				end;
+			end;
+		end;
+	end;
+end;
+
+//Loads last used option settings
+//LastUsedSettings(MenuArray, SendData)
+function LastUsedSettings(const Menus: MenuArray; var Send: SendData): SendData;
+var
+	i: Integer;
+begin
+	for i:=0 to High(Menus) do
+	begin
+		SelectedButtonSettings(Menus[i].Buttons, Send);
+	end;
+
+	Result := Send;
+end;
+
+//Handler for setting up Send Data entity
+//SetupOptionSettings(MenuArray, SendData)
+procedure SetupOptionSettings(const Menus: MenuArray; var Send: SendData);
+begin
+	Send := DefaultSettings();
+	Send := LastUsedSettings(Menus, Send);
+end;
+
+//////////////////
 // Setup Menu Data objects
 //////////////////
 
@@ -441,7 +491,7 @@ end;
 procedure ReadMenuButtons(var MenuFile: TextFile; var Buttons: ButtonArray);
 var
 	count, i: Integer;
-	line, Fontcolor, FillColor, BorderColor: String;
+	line, Fontcolor, FillColor, BorderColor, Selected: String;
 begin
 	ReadLn(MenuFile, line);
 	if (line = 'Buttons') then
@@ -450,20 +500,30 @@ begin
 		SetLength(Buttons, count);
 		for i:=0 to High(Buttons) do
 		begin
+			//Button Position
 			ReadLn(MenuFile, Buttons[i].ButtonName);
 			ReadLn(MenuFile, Buttons[i].Pos.x);
 			ReadLn(MenuFile, Buttons[i].Pos.y);
 			ReadLn(MenuFile, Buttons[i].Extents.w);
 			ReadLn(MenuFile, Buttons[i].Extents.h);
+
+			//Button Behaviour
 			ReadLn(MenuFile, Buttons[i].Action);
 			ReadLn(MenuFile, Buttons[i].Payload.Kind);
-			ReadLn(MenuFile, Buttons[i].Payload.Str);			
+			ReadLn(MenuFile, Buttons[i].Payload.Str);
+
+			//Button Colors		
 			ReadLn(MenuFile, FontColor);
 			ReadLn(MenuFile, FillColor);
 			ReadLn(MenuFile, BorderColor);
 			Buttons[i].Color.Font := RGBAColorCode(FontColor);
 			Buttons[i].Color.Fill := RGBAColorCode(FillColor);
 			Buttons[i].Color.Border := RGBAColorCode(BorderColor);
+
+			//Button Selected or not
+			ReadLn(MenuFile, Selected);
+			if (Selected = 'TRUE') then Buttons[i].Selected := True
+			else Buttons[i].Selected := False;
 		end;
 	end;
 end;
@@ -606,6 +666,7 @@ begin
 		WriteLn(MenuFile, ColorString(Buttons[i].Color.Font));
 		WriteLn(MenuFile, ColorString(Buttons[i].Color.Fill));
 		WriteLn(MenuFile, ColorString(Buttons[i].Color.Border));
+		WriteLn(MenuFile, Buttons[i].Selected);
 	end;
 end;
 
@@ -692,7 +753,7 @@ begin
 	PlayMusic('MenuMusic');
 
 	SetupMenuData(MenuModule.Menus);
-	LoadLastSettings(GameInterface.Send);
+	SetupOptionSettings(MenuModule.Menus, GameInterface.Send);
 	MenuModule.Background := CreateBackground(WINDOW_WIDTH, WINDOW_HEIGHT, 0.5);
 	PlayerName := GetPlayerName(MenuModule.Menus);
 	ChangeCurrentMenu(Root, MenuModule.CurrentMenu, MenuModule.Menus);

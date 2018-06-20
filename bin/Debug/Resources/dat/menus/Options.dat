@@ -11,7 +11,7 @@ Volume
 White
  6.800000072E-01
  3.000000119E-01
-Ship Turning
+Control Type
 White
  2.049999982E-01
  5.500000119E-01
@@ -28,6 +28,7 @@ Your Name
 Black
 White
 Black
+FALSE
 
  5.899999738E-01
  3.700000048E-01
@@ -39,6 +40,7 @@ None
 White
 Grey
 White
+FALSE
 
  5.899999738E-01
  3.700000048E-01
@@ -50,6 +52,7 @@ Volume
 White
 Red
 White
+FALSE
 Back
  4.000000060E-01
  8.000000119E-01
@@ -61,25 +64,28 @@ Root
 White
 Grey
 White
+FALSE
 Mouse
  1.400000006E-01
  6.399999857E-01
  1.500000060E-01
  7.000000030E-02
 Save
-RotationControl
+ShipControl
 Mouse
 White
 Grey
 White
+TRUE
 Keyboard
  3.199999928E-01
  6.399999857E-01
  1.500000060E-01
  7.000000030E-02
 Save
-RotationControl
+ShipControl
 Keyboard
 White
 Grey
 White
+FALSE

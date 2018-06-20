@@ -49,6 +49,21 @@ end;
 // MainGame() Draw procedures
 //////////////////
 
+//Draws cursor icon
+//DrawMouseCursor(Size)
+procedure DrawMouseCursor(const Width: Single; const ControlKind: ShipControlType);
+var
+	MousePos: Point2D;
+	CursorShape: LinesArray;
+begin
+	if (ControlKind = Mouse) then
+	begin
+		MousePos := ToWorld(MousePosition());
+		AddCross(CursorShape, MousePos, Width/3);
+		DrawShape(CursorShape, ColorYellow);
+	end;
+end;
+
 //Draws buff icons on the UI when they are active
 //DrawPlayerBuffs(BuffData, UIData);
 procedure DrawPlayerBuffs(const Powerup: BuffData; const UI: UIData);
@@ -186,11 +201,12 @@ end;
 
 //SubController for drawing the UI
 //DrawPlayerUI(ShipData, UIData, InventoryArray, Integer)
-procedure DrawPlayerUI(const Ship: ShipData; const UI: UIData; const Inventory: InventoryArray; const Score: Integer);
+procedure DrawPlayerUI(const Ship: ShipData; const UI: UIData; const Inventory: InventoryArray; const Score: Integer; ControlKind: ShipControlType);
 begin
 	DrawHealthBar(Ship.IsAlive, Ship.Powerup.Invincible.Switch, Ship.Health, Ship.ShipKind, UI.HealthContainer);
 	DrawInventory(Inventory, UI);
 	DrawPlayerBuffs(Ship.Powerup, UI);
+	DrawMouseCursor(Ship.Extents.w, ControlKind);
 	//DrawFramerate(10, 10);
 
 	//score
@@ -421,7 +437,7 @@ end;
 
 //Main Controller for drawing game elements
 //DrawGame(Game, DifficultyType)
-procedure DrawGame(const PlayerData: Player; const NPCData: NPCTierArray; const LevelData: Level; const Difficulty: DifficultyType);
+procedure DrawGame(const PlayerData: Player; const NPCData: NPCTierArray; const LevelData: Level; const Send: SendData);
 var
 	i: Integer;
 begin
@@ -434,8 +450,8 @@ begin
 		DrawNPCTierShips(NPCData[i].Ships);
 	end;
 	
-	DrawPlayerUI(PlayerData.Ship, PlayerData.UI, PlayerData.Inventory, LevelData.Score);	
-	DrawWormholeUI(LevelData.Wormhole, PlayerData.UI, LevelData.SpawnTimer, Difficulty);
+	DrawPlayerUI(PlayerData.Ship, PlayerData.UI, PlayerData.Inventory, LevelData.Score, Send.ShipControl);	
+	DrawWormholeUI(LevelData.Wormhole, PlayerData.UI, LevelData.SpawnTimer, Send.Difficulty);
 
 	//
 	//DEBUG
@@ -635,13 +651,15 @@ begin
 		//calculate the angle to rotate by
 		theta := CalculateAngle(Ship.Move.Heading, Ship.Move.TargetHeading) * (PI/180);
 		theta := ClampNumber(theta, Ship.Move.TurnRate * GetSpeedBuffMod(SpeedBuff)); //Make sure we are not turning more than allowed
+
+		//rotate ship heading
 		Ship.Move.Heading := RotateVector(Ship.Move.Heading, theta);
 
-		//apply rotation to the ship and its children elements
+		//Rotate ship geometry
 		RotationAnchor := Ship.Move.Pos;
 		RotateShape(Ship.Shape, theta, RotationAnchor.x, RotationAnchor.y);
 
-		//rotate tools and anchorpoints
+		//rotate ship tools and anchorpoints
 		for i:=0 to High(Ship.Tool) do
 		begin
 			RotateShape(Ship.Tool[i].Shape, theta);
@@ -1492,8 +1510,13 @@ begin
 	NumInTarget := Length(DebrisList);
 	SetLength(DebrisList, numInTarget + numToTransfer);
 	case Ship.Owner of
-		HumanPlayer: Color := ColorAqua;
-		Computer: Color := ColorRed;
+		HumanPlayer: color := ColorAqua;
+		Computer: color := ColorRed;
+		else
+		begin
+			WriteLn('KillShip() Invalid OwnerType');
+			color := ColorRed;
+		end;
 	end;
 
 	for i:=numInTarget to High(DebrisList) do
@@ -1732,20 +1755,61 @@ end;
 // MainGame() Handle Player Input
 //////////////////
 
+//Mouse control rotation
+//MouseRotation(MovementModel)
+procedure MouseRotation(var Move: MovementModel);
+var
+	TargetPos: Point2D;
+	TargetVec: Vector;
+begin
+	//Translate mouse point into relative point to ship position
+	TargetPos := ToWorld(MousePosition());
+	TargetPos.x := TargetPos.x - Move.Pos.x;
+	TargetPos.y := TargetPos.y - Move.Pos.y;
+
+	TargetVec := UnitVector(VectorToPoint(TargetPos));
+	Move.TargetHeading := UnitVector(TargetVec);
+end;
+
+//Keyboard control rotation
+//KeyboardRotation(MovementModel)
+procedure KeyboardRotation(var Move: MovementModel; const ControlMap: ControlMapData);
+begin
+	if RotateLeftInput(ControlMap) and not RotateRightInput(ControlMap) then
+	begin
+		Move.TargetHeading := RotateVector(Move.Heading, -1 * Move.TurnRate);
+	end;
+	if RotateRightInput(ControlMap) and not RotateLeftInput(ControlMap) then
+	begin
+		Move.TargetHeading := RotateVector(Move.Heading, Move.TurnRate);
+	end;
+end;
+
+//Handler for Rotation control based on Control Type
+//HandleRotationInput(MovementModel, ShipControlType)
+procedure HandleRotationInput(var Move: MovementModel; const ControlMap: ControlMapData);
+begin
+	case ControlMap.ControlKind of
+		Mouse: MouseRotation(Move);
+		Keyboard: KeyboardRotation(Move, ControlMap);
+		else WriteLn('HandleRotationInput() - Invalid ControlType');
+	end;
+end;
+
 //Handles Player movement inputs
 //HandleMovementInput(MovementModel, array of Emitter)
-procedure HandleMovementInput(var Move: MovementModel; var Emitter: array of EmitterData);
+procedure HandleMovementInput(var Move: MovementModel; var Emitter: array of EmitterData; const ControlMap: ControlMapData);
 var	
 	StrafeHeading: Vector;
 begin
 	//forward and backwards
-	if AccelerateForwardInput() and not AccelerateBackwardInput() then
+	if AccelForwardInput(ControlMap) and not AccelBackwardInput(ControlMap) then
 	begin
 		Move.vel.x += Move.Heading.x * Move.Accel;
 		Move.vel.y += Move.Heading.y * Move.Accel;
 		ActivateEmittersNamed(Emitter, 'Thruster');
 	end;
-	if AccelerateBackwardInput() and not AccelerateForwardInput() then
+	if AccelBackwardInput(ControlMap) and not AccelForwardInput(ControlMap) then
 	begin
 		Move.vel.x += -Move.Heading.x * Move.Accel * Move.ReverseMod;
 		Move.vel.y += -Move.Heading.y * Move.Accel * Move.ReverseMod;
@@ -1755,14 +1819,14 @@ begin
 	//strafe left and right
 	//get strafe heading variable to help find actual strafe vectors
 	StrafeHeading := VectorTo(0,0);
-	if StrafeLeftInput() then
+	if StrafeLeftInput(ControlMap) and not StrafeRightInput(ControlMap) then
 	begin
 		StrafeHeading := RotateVector(Move.Heading, -PI/2);
 		Move.vel.x += StrafeHeading.x * Move.Accel * Move.StrafeMod;
 		Move.vel.y += StrafeHeading.y * Move.Accel * Move.StrafeMod;
 		ActivateEmittersNamed(Emitter, 'Thruster');
 	end;
-	if StrafeRightInput() then
+	if StrafeRightInput(ControlMap) and not StrafeLeftInput(ControlMap) then
 	begin
 		StrafeHeading := RotateVector(Move.Heading, PI/2);
 		Move.vel.x += StrafeHeading.x * Move.Accel * Move.StrafeMod;
@@ -1771,42 +1835,35 @@ begin
 	end;
 
 	//Rotate left and right
-	if RotateLeftInput() and not RotateRightInput() then
-	begin
-		Move.TargetHeading := RotateVector(Move.Heading, -1 * Move.TurnRate);
-	end;
-	if RotateRightInput() and not RotateLeftInput() then
-	begin
-		Move.TargetHeading := RotateVector(Move.Heading, Move.TurnRate);
-	end;
+	HandleRotationInput(Move, ControlMap);
 end;
 
 //handles player action inputs like item activation and tool weapon firing
 //HandleActionInput(array of ToolData, InventoryArray, BuffData)
-procedure HandleActionInput(var Tool: array of ToolData; var Inventory: InventoryArray; const Powerup: BuffData);
+procedure HandleActionInput(var Tools: array of ToolData; var InvItems: InventoryArray; const Powerup: BuffData; const ControlMap: ControlMapData);
 var
 	i: Integer;
 begin
 	//Fire Tool Weapons
-	if FireBallisticInput() then
+	if FireBallisticInput(ControlMap) then
 	begin
-		for i:=0 to High(Tool) do
+		for i:=0 to High(Tools) do
 		begin
-			if (Tool[i].AmmoKind = Ballistic) then
+			if (Tools[i].AmmoKind = Ballistic) then
 			begin
-				Tool[i].CoolDown.Switch := True;
+				Tools[i].CoolDown.Switch := True;
 			end;
 		end;
 	end;
 
 	//Activate BuffData
-	if ActivatePowerupInput() then
+	if ActivatePowerupInput(ControlMap) then
 	begin
-		for i:=0 to High(Inventory) do
+		for i:=0 to High(InvItems) do
 		begin
-			if CanActivateItem(Inventory[i], Powerup) then
+			if CanActivateItem(InvItems[i], Powerup) then
 			begin
-				Inventory[i].Activated := True;
+				InvItems[i].Activated := True;
 				Break;
 			end;
 		end;
@@ -1815,20 +1872,25 @@ end;
 
 //Handles player input to the game state
 //HandleGameInput(ShipData, InventoryArray);
-procedure HandleGameInput(var Ship: ShipData; var Inventory: InventoryArray; const RotationControl: RotationControlType);
+procedure HandleGameInput(var Ship: ShipData; var Inventory: InventoryArray; const ControlMap: ControlMapData);
 begin
 	ProcessEvents();
 
 	if (Ship.IsAlive) then
 	begin
-		HandleMovementInput(Ship.Move, Ship.Emitter);
-		HandleActionInput(Ship.Tool, Inventory, Ship.Powerup);
+		HandleMovementInput(Ship.Move, Ship.Emitter, ControlMap);
+		HandleActionInput(Ship.Tool, Inventory, Ship.Powerup, ControlMap);
 	end;
 end;
 
 //////////////////
 // MainGame() Setup Game Procedures
 //////////////////
+
+procedure SetupControlMap(var ControlMap: ControlMapData; const ShipControl: ShipControlType);
+begin
+	ControlMap := GetControlMap(ShipControl);
+end;
 
 //setup the ships within the NPC tiers
 //SetupNPCTierShips(NPCTier, ShipType, LongWord, DifficultyType)
@@ -1936,14 +1998,16 @@ end;
 
 //controller for setting up the initial game state
 //SetupGame(Game, DifficultyType, ShipType)
-procedure SetupGame(var GameModule: Game; const Difficulty: DifficultyType; const ShipKind: ShipType);
+procedure SetupGame(var GameModule: Game; const Send: SendData);
 begin
 	Randomize;
 	LoadDefaultColors();
 
-	SetupLevel(GameModule.LevelData, Difficulty);
-	SetupPlayer(GameModule.PlayerData, ShipKind);
-	SetupNPCData(GameModule.NPCData, Difficulty);
+	SetupLevel(GameModule.LevelData, Send.Difficulty);
+	SetupPlayer(GameModule.PlayerData, Send.ShipClass);
+	SetupNPCData(GameModule.NPCData, Send.Difficulty);
+
+	SetupControlMap(GameModule.ControlMap, Send.ShipControl);
 end;
 
 //////////////////
@@ -2013,9 +2077,10 @@ var
 begin
 	LoadResourceBundleNamed('game_module', 'game_bundle.txt', true);
 	PlayMusic('GameMusic');
+	HideMouse();
 
 	try
-		SetupGame(GameModule, Send.Difficulty, Send.ShipClass);
+		SetupGame(GameModule, Send);
 		GameTime := CreateTimer();
 		EndDelay := CreateTimer();
 		StartTimer(GameTime);
@@ -2027,11 +2092,11 @@ begin
 	repeat
 		ClearScreen(ColorBlack);
 
-		HandleGameInput(GameModule.PlayerData.Ship, GameModule.PlayerData.Inventory, Send.RotationControl);
+		HandleGameInput(GameModule.PlayerData.Ship, GameModule.PlayerData.Inventory, GameModule.ControlMap);
 		HandleGameState(GameModule.PlayerData, GameModule.LevelData, GameModule.NPCData, Send.Difficulty);
 		HandleNPCSpawning(GameModule.NPCData, Send.Difficulty, GameModule.LevelData.SpawnTimer);
 		UpdateGamePositions(GameModule, Send.Difficulty);
-		DrawGame(GameModule.PlayerData, GameModule.NPCData, GameModule.LevelData, Send.Difficulty);
+		DrawGame(GameModule.PlayerData, GameModule.NPCData, GameModule.LevelData, Send);
 
 		//Handle end game condition
 		Win := IsPlayerWin(GameModule.LevelData.Wormhole, GameModule.PlayerData.Ship);
@@ -2048,6 +2113,7 @@ begin
 	ReleaseAllTimers();
 	StopMusic();
 	ReleaseResourceBundle('game_module');
+	ShowMouse();
 end;
 
 end.

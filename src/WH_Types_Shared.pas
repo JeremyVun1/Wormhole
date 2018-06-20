@@ -10,6 +10,7 @@ uses SwinGame;
 type
 	ShipType = (LightShip, MediumShip, HeavyShip);
 	DifficultyType = (Novice, Intermediate, Expert);
+	ShipControlType = (Mouse, Keyboard);
 
 	Size = record
 		w: Single;

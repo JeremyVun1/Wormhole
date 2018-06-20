@@ -96,6 +96,7 @@ Root
 White
 Grey
 White
+FALSE
 
 
 ////////////
@@ -127,5 +128,6 @@ Buttons
 //Font Color
 //Fill Color
 //Border Color
+//Selected
 
 x, y, w, h = relative % of window_width and window_height

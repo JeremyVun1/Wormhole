@@ -11,7 +11,7 @@ Volume
 White
  0.68
  0.3
-Ship Turning
+Control Type
 White
 0.205
 0.55
@@ -28,6 +28,7 @@ Your Name
 Black
 White
 Black
+FALSE
 
  0.59
  0.37
@@ -39,6 +40,7 @@ None
 White
 Grey
 White
+FALSE
 
  0.59
  0.37
@@ -50,6 +52,7 @@ Volume
 White
 Red
 White
+FALSE
 Back
  4.000000060E-01
  8.000000119E-01
@@ -61,28 +64,31 @@ Root
 White
 Grey
 White
+FALSE
 Mouse
 0.14
 0.64
 0.15
 0.07
 Save
-RotationControl
+ShipControl
 Mouse
 White
 Grey
 White
+FALSE
 Keyboard
 0.32
 0.64
 0.15
 0.07
 Save
-RotationControl
+ShipControl
 Keyboard
 White
 Grey
 White
+TRUE
 
 ////////////
 //Structure
@@ -113,5 +119,6 @@ Buttons
 //Font Color
 //Fill Color
 //Border Color
+//Selected
 
 x, y, w, h = relative % of window_width and window_height

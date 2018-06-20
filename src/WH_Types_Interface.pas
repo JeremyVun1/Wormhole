@@ -11,7 +11,7 @@ type
 	SendData = record
 		Difficulty: DifficultyType;
 		ShipClass: ShipType;
-		RotationControl: RotationControlType;
+		ShipControl: ShipControlType;
 	end;
 
 	ReceiveData = record

@@ -10,7 +10,7 @@ uses SwinGame, WH_Types_Shared;
 type
 	MenuType = (Root, Select, Options, HighScores, Help, ScoreScreen);
 	ButtonAction = (Quit, Save, NavTo, Play, TextInput);
-	PayloadType = (MenuKind, Difficulty, ShipClass, Volume, Text, RotationControl, None);
+	PayloadType = (MenuKind, Difficulty, ShipClass, Volume, Text, ShipControl, None);
 
 	MenuPtr = ^Menu;
 
@@ -32,7 +32,7 @@ type
 		Action: ButtonAction;
 		Payload: PayloadData;
 		Clicked: Boolean;
-		Highlighted: Boolean;
+		Selected: Boolean;
 		Color: ColorData;
 	end;
 

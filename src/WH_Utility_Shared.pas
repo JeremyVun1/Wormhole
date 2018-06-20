@@ -19,6 +19,9 @@ procedure AddRectangle(var Shape: LinesArray; x, y, w, h: Single; const Pos: Poi
 //AddTriangle(LinesArray, Single, Single, Single, Single, Point2D)
 procedure AddTriangle(var Shape: LinesArray; x, y, w, h: Single; const Pos: Point2D);
 
+//Add a Cross shape at the specificed coordinates to the LinesArray
+procedure AddCross(var Shape: LinesArray; const Pos: Point2D; const length: Single);
+
 //Returns integer representation of the sign(+-) of the input parameter
 //GetSign(Single): Single
 function GetSign(a: Single): Single;
@@ -104,6 +107,12 @@ begin
 	AddLine(Shape, x, y, x+w, y, Pos); //base
 	AddLine(Shape, x, y, x+(w/2), y-h, Pos); //left diagonal
 	AddLine(Shape, x+w, y, x+(w/2), y-h, Pos); //right diagonal
+end;
+
+procedure AddCross(var Shape: LinesArray; const Pos: Point2D; const length: Single);
+begin
+	AddLine(Shape, -length, -length, length, length, Pos);
+	AddLine(Shape, -length, length, length, -length, Pos);
 end;
 
 function GetSign(a: Single): Single;
