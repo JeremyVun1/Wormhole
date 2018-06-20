@@ -24,7 +24,7 @@ LightShip
 White
 Grey
 White
-FALSE
+TRUE
 Medium Ship
  4.000000060E-01
  3.499999940E-01
@@ -48,7 +48,7 @@ HeavyShip
 White
 Grey
 White
-TRUE
+FALSE
 Novice
  1.500000060E-01
  5.500000119E-01

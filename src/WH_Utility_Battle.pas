@@ -109,8 +109,8 @@ procedure TeleportShape(var Shape: LinesArray; const x, y: Single; const Pos: Po
 procedure TeleportPointArray(var PointArray: Point2DArray; const x, y: Single; const Pos: Point2D);
 
 //teleports ship to the specified x,y coord
-//TeleportShip(ShipData, Single, Single)
-procedure TeleportShip(var Ship: ShipData; const x, y: Single);
+//TeleportEntity(ShipData, Single, Single)
+procedure TeleportEntity(var Shape: LinesArray; var AnchorPoint: Point2DArray; const x, y: Single; var Pos: Point2D);
 
 //Applies spin decay to a turn rate by Count times
 //DecayRotation(Double, Integer)
@@ -178,6 +178,18 @@ procedure StopTimerPackage(var Package: TimerPackage);
 //ReleaseTimerPackage(TimerPackage)
 procedure ReleaseTimerPackage(var Package: TimerPackage);
 
+//Rotates tool entities by the passed in angle
+//RotateTools(ToolDataArray, Double)
+procedure RotateTools(var Tools: ToolDataArray; const Theta: Double);
+
+//Rotates point2d array by the passed in angle and center of rotation
+//RotateAnchorPoints(Point2DArray, Double, Point2D)
+procedure RotateAnchorPoints(var AnchorPoints: Point2DArray; const Theta: Double; const RotationAnchor: Point2D);
+
+//Returns angle of rotation in degrees required for rotating to the target heading
+//GetRotationAngle(MovementModel, Boolean)
+function GetRotationAngle(const Move: MovementModel; const SpeedBuff: Boolean = False): Double;
+
 //returns the maximum dps the array of tools can output
 //ToolarrayMaxDps(array of ToolData): Single
 function PlayerMaxDps(const Tools: array of ToolData): Single;
@@ -214,6 +226,7 @@ function AccelForwardInput(const ControlMap: ControlMapData): Boolean;
 function AccelBackwardInput(const ControlMap: ControlMapData): Boolean;
 function RotateRightInput(const ControlMap: ControlMapData): Boolean;
 function RotateLeftInput(const ControlMap: ControlMapData): Boolean;
+function FireMissileInput(const ControlMap: ControlMapData): Boolean;
 function FireBallisticInput(const ControlMap: ControlMapData): Boolean;
 function ActivatePowerupInput(const ControlMap: ControlMapData): Boolean;
 
@@ -232,6 +245,7 @@ implementation
 function MouseButtonMap(): MouseButtonMap;
 begin
 	Result.FireBallistic := LeftButton;
+	Result.FireMissile := LeftButton;
 	Result.ActivatePowerup := RightButton;
 end;
 
@@ -254,6 +268,9 @@ begin
 
 	Result.AccelBackward[0] := SKey;
 	Result.AccelBackward[1] := DownKey;
+
+	Result.FireMissile[0] := SpaceKey;
+	Result.FireMissile[1] := SpaceKey;
 
 	Result.FireBallistic[0] := SpaceKey;
 	Result.FireBallistic[1] := SpaceKey;
@@ -436,7 +453,7 @@ begin
 	Result := 1;
 	case AmmoKind of
 		Ballistic: Result := 1/BALLISTIC_FIRE_RATE;
-		//Missile: Result := 1/MISSILE_FIRE_RATE;
+		Missile: Result := 1/MISSILE_FIRE_RATE;
 	end;
 end;
 
@@ -551,11 +568,11 @@ begin
 	end;
 end;
 
-procedure TeleportShip(var Ship: ShipData; const x, y: Single);
+procedure TeleportEntity(var Shape: LinesArray; var AnchorPoint: Point2DArray; const x, y: Single; var Pos: Point2D);
 begin
-	TeleportShape(Ship.Shape, x, y, Ship.Move.Pos);
-	TeleportPointArray(Ship.AnchorPoint, x, y, Ship.Move.Pos);
-	Ship.Move.Pos := PointAt(x, y);
+	TeleportShape(Shape, x, y, Pos);
+	TeleportPointArray(AnchorPoint, x, y, Pos);
+	Pos := PointAt(x, y);
 end;
 
 procedure DecayRotation(var TurnRate: Double; Count: Integer = 1);
@@ -737,7 +754,12 @@ begin
 		if (Emitter[i].EmitterName = Emittername) or (EmitterName='All') then
 		begin
 			Emitter[i].CoolDown.Switch := True;
-			StartTimer(Emitter[i].CoolDown.Clock);
+
+			//only start/restart the timer if it needs to be started
+			if (TimerTicks(Emitter[i].CoolDown.Clock) = 0) then
+			begin
+				StartTimer(Emitter[i].CoolDown.Clock);
+			end;
 		end;
 	end;
 end;
@@ -810,6 +832,32 @@ procedure ReleaseTimerPackage(var Package: TimerPackage);
 begin
 	FreeTimer(Package.Clock);
 	FreeTimer(Package.SubClock);
+end;
+
+procedure RotateTools(var Tools: ToolDataArray; const Theta: Double);
+var
+	i: Integer;
+begin
+	for i:=0 to High(Tools) do
+	begin
+		RotateShape(Tools[i].Shape, Theta);
+	end;
+end;
+
+procedure RotateAnchorPoints(var AnchorPoints: Point2DArray; const Theta: Double; const RotationAnchor: Point2D);
+var
+	i: Integer;
+begin
+	for i:=0 to High(AnchorPoints) do
+	begin
+		RotatePoint(AnchorPoints[i], Theta, RotationAnchor.x, RotationAnchor.y);
+	end;
+end;
+
+function GetRotationAngle(const Move: MovementModel; const SpeedBuff: Boolean = False): Double;
+begin	
+	Result := CalculateAngle(Move.Heading, Move.TargetHeading) * (PI/180);
+	Result := ClampNumber(Result, Move.TurnRate * GetSpeedBuffMod(SpeedBuff)); //Make sure we are not turning more than the max turn rate
 end;
 
 function PlayerMaxDps(const Tools: array of ToolData): Single;
@@ -1047,6 +1095,19 @@ end;
 function RotateLeftInput(const ControlMap: ControlMapData): Boolean;
 begin
 	Result := KeyInput(ControlMap.Keyboard.RotateLeft);
+end;
+
+function FireMissileInput(const ControlMap: ControlMapData): Boolean;
+begin
+	case ControlMap.ControlKind of
+		Mouse: Result := MouseInput(ControlMap.Mouse.FireMissile);
+		Keyboard: Result := KeyInput(ControlMap.Keyboard.FireMissile);
+		else
+		begin
+			WriteLn('FireMissileInput() - Invalid ControlType');
+			Result := False;
+		end;
+	end;
 end;
 
 function FireBallisticInput(const ControlMap: ControlMapData): Boolean;

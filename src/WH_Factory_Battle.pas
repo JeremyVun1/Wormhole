@@ -21,8 +21,12 @@ function GetEmittingParticleVector(const MaxVel: Single; const Heading: Vector):
 function CreateParticle(const Emitter: EmitterData): ParticleData;
 
 //returns ballistic type ammo
-//CreateBallisticAmmo(): AmmoData
-function CreateBallisticAmmo(const Color: LongWord; const Pos: Point2D): AmmoData;
+//CreateBallisticAmmo(LongWord, Point2D, Single): AmmoData
+function CreateBallisticAmmo(const Color: LongWord; const Pos: Point2D; const Modifier: Single = 1): AmmoData;
+
+//returns a missile type ammo
+//CreateMissileAmmo(LongWord, Point2D, Single): AmmoData
+function CreateMissileAmmo(const Color: LongWord; const Pos: Point2D; const Modifier: Single = 1): AmmoData;
 
 //Ammo Factory interface for creating and returning ammo instances
 //CreateAmmo(AmmoType, Vector, Point2D, Single, Single, Owner): AmmoData
@@ -127,19 +131,63 @@ begin
 	StartTimer(Result.Expiry);
 end;
 
-function CreateBallisticAmmo(const Color: LongWord; const Pos: Point2D): AmmoData;
+function MissileAmmoShape(const Pos: Point2D): LinesArray;
 begin
+	AddRectangle(Result, 0, 0, LINE_LENGTH, LINE_LENGTH/2, Pos);
+	AddRectangle(Result, LINE_LENGTH, 0, LINE_LENGTH/3, LINE_LENGTH/2, Pos);
+end;
+
+function BallisticAmmoShape(const Pos: Point2D): LinesArray;
+begin	
+	AddLine(Result, 0, 0, BALLISTIC_LENGTH, 0, Pos);
+end;
+
+function CreateMissileAmmo(const Color: LongWord; const Pos: Point2D; const Modifier: Single = 1): AmmoData;
+var
+	LaunchVel: Single;
+begin
+	//Movement and Damage
+	Result.AmmoKind := Missile;
+	Result.Move.Accel := MISSILE_ACCEL * Modifier;
+	Result.Move.MaxVel := MISSILE_MAX_VELOCITY * Modifier;
+	LaunchVel := Result.Move.MaxVel / 10;
+	Result.Move.Vel := VectorTo(LaunchVel, LaunchVel);
+	Result.Move.TurnRate := (MISSILE_TURN_RATE/FPS) * (PI/180) * Modifier;
+	Result.Move.Pos := Pos;
+	Result.Targeting.Seeking := False;
+	Result.Targeting.Target := nil;
+	Result.Damage := MISSILE_DAMAGE;
+
+	//Shape and color
+	Result.Color := Color;	
+	Result.Shape := MissileAmmoShape(Pos);
+
+	//AnchorPoint
+	SetLength(Result.AnchorPoint, 1);
+	Result.AnchorPoint[0] := Pos;
+	Result.AnchorPoint[0].x += LINE_LENGTH/4;
+
+	//thrust emitter
+	SetLength(Result.Emitter, 1);
+	Result.Emitter[0] := CreateEmitter(0, 'Thruster', 45, 1, 0.2, 4, 5, 'Red', 'Yellow');
+end;
+
+function CreateBallisticAmmo(const Color: LongWord; const Pos: Point2D; const Modifier: Single = 1): AmmoData;
+begin
+	//Movement and Damage
 	Result.AmmoKind := Ballistic;
 	Result.Move.Accel := 0;
-	Result.Move.Vel := VectorTo(BALLISTIC_MAX_VELOCITY, BALLISTIC_MAX_VELOCITY);
-	Result.Move.MaxVel := BALLISTIC_MAX_VELOCITY;
+	Result.Move.MaxVel := BALLISTIC_MAX_VELOCITY  * Modifier;	
+	Result.Move.Vel := VectorTo(Result.Move.MaxVel, Result.Move.MaxVel);
 	Result.Move.TurnRate := 0;
 	Result.Move.Pos := Pos;
+	Result.Targeting.Seeking := False;
+	Result.Targeting.Target := nil;
 	Result.Damage := BALLISTIC_DAMAGE;
-	Result.Color := Color;
 
-	//shape
-	AddLine(Result.Shape, 0, 0, BALLISTIC_LENGTH, 0, Pos);
+	//Shape and color
+	Result.Color := Color;
+	Result.Shape := BallisticAmmoShape(Pos);
 end;
 
 function CreateAmmo(const AmmoKind: AmmoType; const Pos: Point2D; const Heading: Vector; const Owner: OwnerType; const Modifier: Single = 1): AmmoData;
@@ -150,24 +198,24 @@ begin
 	Color := ColorYellow; //default
 
 	case AmmoKind of
-		Ballistic: Result := CreateBallisticAmmo(Color, Pos);
-		//Missile: Ammo := CreateMissileAmmo();
+		Ballistic: Result := CreateBallisticAmmo(Color, Pos, Modifier);
+		Missile: Result := CreateMissileAmmo(Color, Pos, Modifier);
 	end;
 
 	//Ammo heading
 	//Rotate Ammo to correct heading	
 	Result.Move.Heading := Heading;
+	Result.Move.TargetHeading := Heading;
 	theta := VectorAngle(Result.Move.Heading) * (PI/180);
 	RotateShape(Result.Shape, theta, Result.Move.Pos.x, Result.Move.Pos.y);
+	Result.Move.Vel.x *= Heading.x;
+	Result.Move.Vel.y *= Heading.y;
 
 	//general values
 	Result.Owner := Owner;
 	Result.IsAlive := True;
 	Result.Expiry := CreateTimer();
 	StartTimer(Result.Expiry);
-
-	//apply modifier
-	Result.Move.Vel := MultiplyVector(Heading, Modifier * BALLISTIC_MAX_VELOCITY);
 end;
 
 function GetOwnerColor(const OwnerColorKind: OwnerColorType): LongWord;
@@ -214,6 +262,22 @@ begin
 	Result[0] := BaseColor;
 end;
 
+function TurretShape(): LinesArray;
+var
+	Shape: LinesArray;
+begin
+	AddTriangle(Shape, -LINE_LENGTH/3, LINE_LENGTH/2, LINE_LENGTH/1.5, LINE_LENGTH/2.3, PointAt(0, 0));
+	Result := Shape;
+end;
+
+function LauncherShape(): LinesArray;
+var
+	Shape: LinesArray;
+begin
+	AddRectangle(Shape, -LINE_LENGTH/4, -LINE_LENGTH/1.5, LINE_LENGTH/2, LINE_LENGTH/1.2, PointAt(0,0));
+	Result := Shape;
+end;
+
 function AddTool(Tools: ToolDataArray; const AnchorIndex: Integer; const Color: String; const AmmoKind: AmmoType): ToolDataArray;
 var
 	f: Integer;
@@ -229,7 +293,10 @@ begin
 	Tools[f].Color[1] := ColorRed;
 
 	//tool shape
-	AddTriangle(Tools[f].Shape, -LINE_LENGTH/3, LINE_LENGTH/2, LINE_LENGTH/1.5, LINE_LENGTH/2.3, PointAt(0, 0));
+	case AmmoKind of 
+		Ballistic: Tools[f].Shape := TurretShape();
+		Missile: Tools[f].Shape := LauncherShape();
+	end;
 
 	Result := Tools;
 end;
@@ -476,7 +543,7 @@ begin
 	Result.IsAlive := True;
 
 	//Teleport the ship to the passed in Pos x,y
-	TeleportShip(Result, Pos.x, Pos.y);
+	TeleportEntity(Result.Shape, Result.AnchorPoint, Pos.x, Pos.y, Result.Move.Pos);
 
 	//timers
 	Result.Powerup.Invincible := CreateTimerPackage();

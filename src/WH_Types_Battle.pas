@@ -17,9 +17,12 @@ type
 	AnchorPtr = ^Point2D;
 	AnchorArrayPtr = ^Point2DArray;
 	HeadingPtr = ^Vector;
+	NPCDataPtr = ^NPCTierArray;
+	ShipPtr = ^ShipData;
 
 	MouseButtonMap = record
 		FireBallistic: MouseButton;
+		FireMissile: MouseButton;
 		ActivatePowerup: MouseButton;
 	end;
 
@@ -31,6 +34,7 @@ type
 		AccelForward: array[0..1] of KeyCode;
 		AccelBackward: array[0..1] of KeyCode;
 		FireBallistic: array[0..1] of KeyCode;
+		FireMissile: array[0..1] of KeyCode;
 		ActivatePowerup: array[0..1] of KeyCode;
 	end;
 
@@ -86,6 +90,11 @@ type
 
 	EmitterDataArray = array of EmitterData;
 
+	TargetingData = record
+		Target: ShipPtr;
+		Seeking: Boolean;
+	end;
+
 	AmmoData = record
 		Owner: Ownertype;
 		IsAlive: Boolean;
@@ -93,8 +102,11 @@ type
 		Move: MovementModel;
 		Damage: Single;
 		Expiry: Timer;
+		Targeting: TargetingData;
 		Shape: LinesArray;
 		Color: LongWord;
+		AnchorPoint: Point2DArray;
+		Emitter: EmitterDataArray;
 	end;
 
 	AmmoListArray = array of AmmoData;
@@ -182,6 +194,11 @@ type
 	end;
 
 	NPCTierArray = array of NPCTier;
+
+	ShipListData = record
+		Player: ShipPtr;
+		NPC: NPCDataPtr;		
+	end;
 
 	LootData = record
 		LootKind: ItemType;

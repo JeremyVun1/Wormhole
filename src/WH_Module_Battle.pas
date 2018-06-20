@@ -1,13 +1,20 @@
 unit WH_Module_Battle;
 
+/////////////
+// Public
+/////////////
 interface
 
-uses SysUtils, SwinGame, sgBackEndTypes, WH_Factory_Battle, WH_Settings, WH_Factory_Shared, WH_Utility_Battle, WH_Utility_Shared, WH_Types_Battle, WH_Types_Shared, WH_Types_Interface;
+uses SysUtils, SwinGame, sgBackEndTypes, WH_Factory_Battle, WH_Settings, WH_AI_Behaviour, WH_Factory_Shared, WH_Utility_Battle, WH_Utility_Shared, WH_Types_Battle, WH_Types_Shared, WH_Types_Interface;
 
 //Call Game Battle Module
 //MainGame(DifficultyType, ShipType): ReceiveData
 function MainGame(const Send: SendData): ReceiveData;
 
+
+/////////////
+// Private
+/////////////
 implementation
 
 //////////////////
@@ -278,6 +285,7 @@ begin
 			end;
 
 			DrawShape(AmmoList[i].Shape, Color);
+			DrawEmitterArray(AmmoList[i].Emitter, False);
 		end;
 	end;
 end;
@@ -462,32 +470,6 @@ end;
 // MainGame() Update Position procedures
 //////////////////
 
-//controller for updating ship object positions
-//UpdateEntityPos(ShipData)
-procedure UpdateEntityPos(var Move: MovementModel; var Shape: LinesArray; const SpeedBuff: Boolean = False);
-begin
-	ClampVelocity(Move, SpeedBuff);
-	ApplyVelocity(Move, Shape, SpeedBuff);
-end;
-
-//iterates through all the ammo created by the tool to update them
-//UpdateTool(ToolData)
-procedure UpdateTool(var Tool: ToolData);
-var
-	i: Integer;
-begin
-	//for i:=0 to High(Tool.Shape) do
-	//begin
-		//writeln(' cx1: ', Tool.Shape[i].StartPoint.x, ' cy1: ', Tool.Shape[i].StartPoint.y, ' cx2: ', Tool.Shape[i].EndPoint.x, ' cy2: ', Tool.Shape[i].EndPoint.y)
-	//end;
-
-	//update tool ammo
-	for i:=0 to High(Tool.SpawnedAmmo) do
-	begin
-		UpdateEntityPos(Tool.SpawnedAmmo[i].Move, Tool.SpawnedAmmo[i].Shape);
-	end;
-end;
-
 //Updates the position of Emitter Particles
 //UpdateParticle(ParticleData)
 procedure UpdateParticle(var Particle: ParticleData);
@@ -513,6 +495,105 @@ begin
 	for i:=0 to High(Emitter.Particles) do
 	begin
 		UpdateParticle(Emitter.Particles[i]);
+	end;
+end;
+
+//Adds acceleration to the NPC Ship in the direction of its heading
+//ThrustNPCEntity(MovementModel, array of EmitterData)
+procedure ThrustNPCEntity(var Move: MovementModel; var Emitters: array of EmitterData);
+var
+	AngleToStartThrust: Single;
+begin
+	//only accelerate if pointing in the roughly the direction it wants to go
+	AngleToStartThrust := 20;
+	if (CalculateAngle(Move.TargetHeading, Move.Heading) < AngleToStartThrust) then
+	begin
+		Move.Vel.x += Move.Accel * Move.Heading.x;
+		Move.Vel.y += Move.Accel * Move.Heading.y;
+		ActivateEmittersNamed(Emitters, 'Thruster');
+	end;
+end;
+
+//updates the position of anchorpoints
+//UpdateAnchorPoints(Point2DArray, Vector, TimerPackage)
+procedure UpdateAnchorPoints(var AnchorPoint: Point2DArray; const Move: MovementModel; const SpeedBuff: Boolean);
+var
+	i: Integer;
+begin
+	for i:=0 to High(AnchorPoint) do
+	begin
+		MovePoint(AnchorPoint[i], MultiplyVector(Move.Vel, GetSpeedBuffMod(SpeedBuff)));
+	end;
+end;
+
+//controller for updating ship object positions
+//UpdateEntityPos(ShipData)
+procedure UpdateEntityPos(var Move: MovementModel; var Shape: LinesArray; const SpeedBuff: Boolean = False);
+begin
+	ClampVelocity(Move, SpeedBuff);
+	ApplyVelocity(Move, Shape, SpeedBuff);
+end;
+
+//Rotates missile instances to their target heading
+//RotateMissile(AmmoData)
+procedure RotateMissile(var Ammo: AmmoData);
+var
+	theta: Double;
+	rotationAnchor: Point2D;
+begin
+	if (VectorsNotEqual(Ammo.Move.Heading, Ammo.Move.TargetHeading)) then
+	begin
+		//calculate anglel and center of rotation
+		theta := GetRotationAngle(Ammo.Move);
+		rotationAnchor := Ammo.AnchorPoint[0];
+
+		//Rotate Geometry
+		RotateShape(Ammo.Shape, theta, rotationAnchor.x, rotationAnchor.y);
+
+		//Rotate AnchorPoints
+		RotateAnchorPoints(Ammo.AnchorPoint, theta, rotationAnchor);
+
+		//Update heading
+		Ammo.Move.Heading := RotateVector(Ammo.Move.Heading, theta);
+	end;
+end;
+
+//Updates the Ammos movement and position
+//UpdateAmmo(AmmoData)
+procedure UpdateAmmo(var Ammo: AmmoData);
+var
+	i: Integer;
+begin
+	//Apply Thrust
+	ThrustNPCEntity(Ammo.Move, Ammo.Emitter);
+
+	//update entity position
+	RotateMissile(Ammo);
+	UpdateEntityPos(Ammo.Move, Ammo.Shape);
+	UpdateAnchorPoints(Ammo.AnchorPoint, Ammo.Move, False);
+
+	//Update any emitters
+	for i:=0 to High(Ammo.Emitter) do
+	begin
+		UpdateEmitter(Ammo.Emitter[i]);
+	end;
+end;
+
+//iterates through all the ammo created by the tool to update them
+//UpdateTool(ToolData)
+procedure UpdateTool(var Tool: ToolData);
+var
+	i: Integer;
+begin
+	//for i:=0 to High(Tool.Shape) do
+	//begin
+		//writeln(' cx1: ', Tool.Shape[i].StartPoint.x, ' cy1: ', Tool.Shape[i].StartPoint.y, ' cx2: ', Tool.Shape[i].EndPoint.x, ' cy2: ', Tool.Shape[i].EndPoint.y)
+	//end;
+
+	//update tool ammo
+	for i:=0 to High(Tool.SpawnedAmmo) do
+	begin
+		UpdateAmmo(Tool.SpawnedAmmo[i]);
 	end;
 end;
 
@@ -642,44 +723,26 @@ end;
 //RotateShip(ShipData, Boolean);
 procedure RotateShip(var Ship: ShipData; SpeedBuff: Boolean = False);
 var
-	i: Integer;
 	theta: Double;
 	RotationAnchor: Point2D;
 begin
 	if (VectorsNotEqual(Ship.Move.Heading, Ship.Move.TargetHeading)) then
 	begin
-		//calculate the angle to rotate by
-		theta := CalculateAngle(Ship.Move.Heading, Ship.Move.TargetHeading) * (PI/180);
-		theta := ClampNumber(theta, Ship.Move.TurnRate * GetSpeedBuffMod(SpeedBuff)); //Make sure we are not turning more than allowed
-
-		//rotate ship heading
-		Ship.Move.Heading := RotateVector(Ship.Move.Heading, theta);
+		//calculate the rotation angle and center of rotation
+		theta := GetRotationAngle(Ship.Move, SpeedBuff);
+		RotationAnchor := Ship.Move.Pos;
 
 		//Rotate ship geometry
-		RotationAnchor := Ship.Move.Pos;
 		RotateShape(Ship.Shape, theta, RotationAnchor.x, RotationAnchor.y);
 
-		//rotate ship tools and anchorpoints
-		for i:=0 to High(Ship.Tool) do
-		begin
-			RotateShape(Ship.Tool[i].Shape, theta);
-		end;
-		for i:=0 to High(Ship.AnchorPoint) do
-		begin
-			RotatePoint(Ship.AnchorPoint[i], Theta, RotationAnchor.x, RotationAnchor.y);
-		end;		
-	end;
-end;
+		//rotate ship tools
+		RotateTools(Ship.Tool, theta);
 
-//updates the position of anchorpoints
-//UpdateAnchorPoints(Point2DArray, Vector, TimerPackage)
-procedure UpdateAnchorPoints(var AnchorPoint: Point2DArray; const Move: MovementModel; const SpeedBuff: Boolean);
-var
-	i: Integer;
-begin
-	for i:=0 to High(AnchorPoint) do
-	begin
-		MovePoint(AnchorPoint[i], MultiplyVector(Move.Vel, GetSpeedBuffMod(SpeedBuff)));
+		//rotate ship anchorpoints
+		RotateAnchorPoints(Ship.AnchorPoint, theta, RotationAnchor);
+
+		//Update Ship Heading
+		Ship.Move.Heading := RotateVector(Ship.Move.Heading, theta);
 	end;
 end;
 
@@ -1126,58 +1189,11 @@ begin
 		//get a new ammo record from the ammo factory
 		SetLength(Tool.SpawnedAmmo, Length(Tool.SpawnedAmmo)+1);
 		f := High(Tool.SpawnedAmmo);
-		Tool.SpawnedAmmo[f] := CreateAmmo(Tool.AmmoKind, Tool.Anchor^, Tool.Heading^, Owner, DifficultyMod);		
+		Tool.SpawnedAmmo[f] := CreateAmmo(Tool.AmmoKind, Tool.Anchor^, Tool.Heading^, Owner, DifficultyMod);
+		
+		//finish setting up any emitters
+		SetupEmitterPointers(Tool.SpawnedAmmo[f].Emitter, Length(Tool.SpawnedAmmo[f].AnchorPoint), Tool.SpawnedAmmo[f].AnchorPoint, Tool.SpawnedAmmo[f].Move.Heading);
 	end;
-end;
-
-//Adds acceleration to the NPC Ship in the direction of its heading
-//ThrustNPCShip(MovementModel, array of EmitterData)
-procedure ThrustNPCShip(var Move: MovementModel; var Emitter: array of EmitterData);
-var
-	AngleToStartThrust: Single;
-begin
-	//only accelerate if pointing in the roughly the direction it wants to go
-	AngleToStartThrust := 20;
-	if (CalculateAngle(Move.TargetHeading, Move.Heading) < AngleToStartThrust) then
-	begin
-		Move.Vel.x += Move.Accel * Move.Heading.x;
-		Move.Vel.y += Move.Accel * Move.Heading.y;
-		ActivateEmittersNamed(Emitter, 'Thruster');
-	end;
-end;
-
-//NPC randomly moves around the map
-//ErraticBehaviour(MovementModel)
-procedure ErraticBehaviour(var Move: MovementModel);
-begin
-	//set new random heading every 3 seconds on average
-	case random(FPS*3) of
-		((FPS*3)-1): 
-		begin
-			Move.TargetHeading := GetRandomVector(1,1);
-		end;
-	end;
-end;
-
-//NPC chases after the plaayer
-//ChaseBehaviour(MovementModel, Point2D)
-procedure ChaseBehaviour(var Move: MovementModel; const TargetPos: Point2D);
-var
-	CurrentVec, DesiredVec, SteeringVec: Vector;	
-begin
-	if (PointPointDistance(Move.Pos, TargetPos) <= AGRO_RANGE) then
-	begin
-		CurrentVec := Move.Vel;
-
-		//get desired vector to player with magnitude of max velocity
-		DesiredVec := VectorTo(TargetPos.x - Move.Pos.x, TargetPos.y - Move.Pos.y);
-		DesiredVec := LimitVector(DesiredVec, Move.MaxVel);
-
-		//get steering vector for counter acceleration
-		SteeringVec := SubtractVectors(DesiredVec, CurrentVec);
-		Move.TargetHeading := UnitVector(SteeringVec);
-	end
-	else ErraticBehaviour(Move);
 end;
 
 //Handles NPC tool firing behaviour
@@ -1210,7 +1226,7 @@ begin
 			Erratic: ErraticBehaviour(Ship.Move);
 			Chase: ChaseBehaviour(Ship.Move, TargetPos);
 		end;
-		ThrustNPCShip(Ship.Move, Ship.Emitter);
+		ThrustNPCEntity(Ship.Move, Ship.Emitter);
 
 		//shooting
 		FireNPCShipTools(Ship.Tool, Difficulty);
@@ -1282,26 +1298,22 @@ begin
 	//Play area top transition
 	if (Ammo.Move.Pos.y < (-PLAY_HEIGHT/2)) then 
 	begin
-		TeleportShape(Ammo.Shape, Ammo.Move.Pos.x, PLAY_HEIGHT/2-20, Ammo.Move.Pos);
-		Ammo.Move.Pos := PointAt(Ammo.Move.Pos.x, PLAY_HEIGHT/2-20);
+		TeleportEntity(Ammo.Shape, Ammo.AnchorPoint, Ammo.Move.Pos.x, PLAY_HEIGHT/2-20, Ammo.Move.Pos);
 	end
 	//Play area right transition
 	else if (Ammo.Move.Pos.x > PLAY_WIDTH/2) then
 	begin
-		TeleportShape(Ammo.Shape, -PLAY_WIDTH/2+20, Ammo.Move.Pos.y, Ammo.Move.Pos);
-		Ammo.Move.Pos := PointAt(-PLAY_WIDTH/2+20, Ammo.Move.Pos.y);
+		TeleportEntity(Ammo.Shape, Ammo.AnchorPoint, -PLAY_WIDTH/2+20, Ammo.Move.Pos.y, Ammo.Move.Pos);
 	end
 	//Play area bottom transition
 	else if (Ammo.Move.Pos.y > PLAY_HEIGHT/2) then
 	begin
-		TeleportShape(Ammo.Shape, Ammo.Move.Pos.x, -PLAY_HEIGHT/2+20, Ammo.Move.Pos);
-		Ammo.Move.Pos := PointAt(Ammo.Move.Pos.x, -PLAY_HEIGHT/2+20);
+		TeleportEntity(Ammo.Shape, Ammo.AnchorPoint, Ammo.Move.Pos.x, -PLAY_HEIGHT/2+20, Ammo.Move.Pos);
 	end
 	//Play area left transition
 	else if (Ammo.Move.Pos.x < -PLAY_WIDTH/2) then
-		begin
-		TeleportShape(Ammo.Shape, PLAY_WIDTH/2-20, Ammo.Move.Pos.y, Ammo.Move.Pos);
-		Ammo.Move.Pos := PointAt(PLAY_WIDTH/2-20, Ammo.Move.Pos.y);
+	begin
+		TeleportEntity(Ammo.Shape, Ammo.AnchorPoint, PLAY_WIDTH/2-20, Ammo.Move.Pos.y, Ammo.Move.Pos);
 	end;
 end;
 
@@ -1312,22 +1324,22 @@ begin
 	//Play area top transition
 	if (Ship.Move.Pos.y < (-PLAY_HEIGHT/2 - Ship.Extents.w)) then
 	begin
-		TeleportShip(Ship, Ship.Move.Pos.x, PLAY_HEIGHT/2);
+		TeleportEntity(Ship.Shape, Ship.AnchorPoint, Ship.Move.Pos.x, PLAY_HEIGHT/2, Ship.Move.Pos);
 	end
 	//Play area right transition
 	else if (Ship.Move.Pos.x > (PLAY_WIDTH/2 + Ship.Extents.w)) then
 	begin
-		TeleportShip(Ship, -PLAY_WIDTH/2, Ship.Move.Pos.y);
+		TeleportEntity(Ship.Shape, Ship.AnchorPoint, -PLAY_WIDTH/2, Ship.Move.Pos.y, Ship.Move.Pos);
 	end
 	//Play area bottom transition
 	else if (Ship.Move.Pos.y > (PLAY_HEIGHT/2 + Ship.Extents.w)) then
 	begin
-		TeleportShip(Ship, Ship.Move.Pos.x, -PLAY_HEIGHT/2);
+		TeleportEntity(Ship.Shape, Ship.AnchorPoint, Ship.Move.Pos.x, -PLAY_HEIGHT/2, Ship.Move.Pos);
 	end
 	//Play area left transition
 	else if (Ship.Move.Pos.x < (-PLAY_WIDTH/2 - Ship.Extents.w)) then
 	begin
-		TeleportShip(Ship, PLAY_WIDTH/2, Ship.Move.Pos.y);
+		TeleportEntity(Ship.Shape, Ship.AnchorPoint, PLAY_WIDTH/2, Ship.Move.Pos.y, Ship.Move.Pos);
 	end;
 end;
 
@@ -1391,21 +1403,60 @@ begin
 	MoveCameraTo(TargetPos.x-(WINDOW_WIDTH/2), TargetPos.y-(WINDOW_HEIGHT/2));
 end;
 
+//returns whether the ammo has reached max lifetime or not
+//AmmoExpired(AmmoData): Boolean
+function AmmoExpired(const Ammo: AmmoData): Boolean;
+var
+	MaxDuration: Single;
+begin
+	if not (Ammo.IsAlive) then Exit
+	else
+	begin
+		case Ammo.AmmoKind of
+			Ballistic: MaxDuration := BALLISTIC_EXPIRY;
+			Missile: MaxDuration := MISSILE_EXPIRY;
+			else WriteLn('AmmoExpired() - Invalid ammo type');
+		end;
+
+		if (GetTimerSeconds(Ammo.Expiry) > MaxDuration) then
+		begin
+			Result := True;
+		end
+		else Result := False;
+	end;
+end;
+
+//Handles Missile Seeking Behaviour
+//MissileSeeking(AmmoData, ShipList)
+procedure MissileSeeking(var Ammo: AmmoData; const ShipList: ShipListData);
+begin
+	//find target if not already locked on
+	SeekTarget(Ammo.Move.Pos, ShipList, Ammo.Targeting, Ammo.Owner);
+
+	//Set new heading towards target if it exists
+	ChaseTarget(Ammo.Move, Ammo.Targeting);	
+end;
+
 //manage the state of the passed in ammo instance
 //HandleAmmoState(AmmoData)
-procedure HandleAmmoState(var Ammo: AmmoData);
+procedure HandleAmmoState(var Ammo: AmmoData; const ShipList: ShipListData);
 begin
-	HandleEdgeTransition(Ammo);
-	//flag expired ammo for destruction
-	if (GetTimerSeconds(Ammo.Expiry) > BALLISTIC_EXPIRY) then
+	if Ammo.IsAlive then
 	begin
-		Ammo.IsAlive := False;
+		//Ammo AI Behaviour
+		case Ammo.AmmoKind of
+			Ballistic: ; // static behaviour, do nothing
+			Missile: MissileSeeking(Ammo, ShipList);
+		end;
+
+		HandleEdgeTransition(Ammo);
+		HandleEmitters(Ammo.Emitter, @Ammo.Move.Heading);
 	end;
 end;
 
 //Parent handler for the passed in tool weapon
 //HandleToolState(ToolData)
-procedure HandleToolState(var Tool: ToolData; const Difficulty: DifficultyType; const Owner: OwnerType);
+procedure HandleToolState(var Tool: ToolData; const Difficulty: DifficultyType; const Owner: OwnerType; const ShipList: ShipListData);
 var
 	i: Integer;
 begin
@@ -1419,13 +1470,52 @@ begin
 	for i:=0 to High(Tool.SpawnedAmmo) do
 	begin
 		//Handle Tool's spawned ammo
-		HandleAmmoState(Tool.SpawnedAmmo[i]);
+		HandleAmmoState(Tool.SpawnedAmmo[i], ShipList);
+	end;
+end;
+
+//creates debris explosion from ammo entity
+//ExplodeAmmo(AmmoData, DebrisListArray)
+procedure ExplodeAmmo(var Ammo: AmmoData; var DebrisList: DebrisListArray);
+var
+	numInTarget, numToTransfer, i: Integer;
+begin
+	numToTransfer := Length(Ammo.Shape);
+
+	if (numToTransfer > 0) then
+	begin
+		numInTarget := Length(DebrisList);
+		SetLength(DebrisList, numInTarget + numToTransfer);
+		for i:=numInTarget to High(DebrisList) do
+		begin
+			DebrisList[i] := CreateDebris(Ammo.Shape[i-NumInTarget], ColorOrange);
+		end;
+
+		SetLength(Ammo.Shape, 0);
+	end;
+end;
+
+//iterates through ammo and explodes dead ammo
+//HandleAmmoDeath(AmmoListArray, DebrisListArray)
+procedure HandleAmmoDeath(var AmmoList: AmmoListArray; var DebrisList: DebrisListArray);
+var
+	i: Integer;
+begin
+	for i:=0 to High(AmmoList) do
+	begin
+		//flag expired ammo for destruction
+		AmmoList[i].IsAlive := not AmmoExpired(AmmoList[i]);
+
+		if not AmmoList[i].IsAlive then
+		begin
+			ExplodeAmmo(AmmoList[i], DebrisList);
+		end;
 	end;
 end;
 
 //Ship level controller for managing the state of the ship instance
 //HandleShipState(ShipData, DifficultyType)
-procedure HandleShipState(var Ship: ShipData; const Difficulty: DifficultyType);
+procedure HandleShipState(var Ship: ShipData; const Difficulty: DifficultyType; const ShipList: ShipListData; var DebrisList: DebrisListArray);
 var
 	i: Integer;
 begin
@@ -1434,7 +1524,8 @@ begin
 	//tools
 	for i:=0 to High(Ship.Tool) do
 	begin
-		HandleToolState(Ship.Tool[i], Difficulty, Ship.Owner);
+		HandleToolState(Ship.Tool[i], Difficulty, Ship.Owner, ShipList);
+		HandleAmmoDeath(Ship.Tool[i].SpawnedAmmo, DebrisList);
 	end;
 
 	//edge transition and emitters
@@ -1655,9 +1746,9 @@ end;
 
 //Sub controller for handling the players state
 //HandlePlayerState(Player, LootDataArray, DifficultyType)
-procedure HandlePlayerState(var PlayerData: Player; var LevelData: Level; const Difficulty: DifficultyType);
+procedure HandlePlayerState(var PlayerData: Player; var LevelData: Level; const Difficulty: DifficultyType; const ShipList: ShipListData);
 begin
-	HandleShipState(PlayerData.Ship, Difficulty);
+	HandleShipState(PlayerData.Ship, Difficulty, ShipList, LevelData.DebrisList);
 	HandleShipDeath(PlayerData.Ship, LevelData, @PlayerData.NumberPopups);
 
 	HandleNumberPopups(PlayerData.NumberPopups);
@@ -1673,21 +1764,21 @@ end;
 
 //subcontroller for the state of NPC ships
 //HandleNPCShip(array of ShipData, Point2D, DifficultyType)
-procedure HandleNPCShip(var Ship: ShipData; const TargetPos: Point2D; const Difficulty: DifficultyType);
+procedure HandleNPCShip(var Ship: ShipData; const TargetPos: Point2D; const Difficulty: DifficultyType; const ShipList: ShipListData; var DebrisList: DebrisListArray);
 begin
 	HandleNPCBehaviour(Ship, TargetPos, Difficulty);
-	HandleShipState(Ship, Difficulty);
+	HandleShipState(Ship, Difficulty, ShipList, DebrisList);
 end;
 
 //Sub controller for handling active npc behaviour
 //HandleNPCShips(NPCTier, Level, Point2D, DifficultyType)
-procedure HandleNPCShips(var ShipArray: ShipDataArray; const PlayerPos: Point2D; const Difficulty: DifficultyType);
+procedure HandleNPCShips(var ShipArray: ShipDataArray; const PlayerPos: Point2D; const Difficulty: DifficultyType; const ShipList: ShipListData; var DebrisList: DebrisListArray);
 var
 	i: Integer;
 begin
 	for i:=0 to High(ShipArray) do
 	begin
-		HandleNPCShip(ShipArray[i], PlayerPos, Difficulty);
+		HandleNPCShip(ShipArray[i], PlayerPos, Difficulty, ShipList, DebrisList);
 	end;
 end;
 
@@ -1729,23 +1820,28 @@ procedure HandleGameState(var PlayerData: Player; var LevelData: Level; var NPCD
 var
 	i: Integer;
 	targetPos: Point2D;
+	ShipList: ShipListData;
 begin
+	//build list of ship addresses for targeting behaviours
+	ShipList.Player := @PlayerData.Ship;
+	ShipList.NPC := @NPCData;
+
+	//Collisions
+	HandleCollisions(PlayerData, LevelData.Wormhole, NPCData);
+
 	//Player
-	HandlePlayerState(PlayerData, LevelData, Difficulty);
+	HandlePlayerState(PlayerData, LevelData, Difficulty, ShipList);
 
 	//NPC
 	targetPos := PlayerData.Ship.Move.Pos;
 	for i:=0 to High(NPCData) do
 	begin
-		HandleNPCShips(NPCData[i].Ships, targetPos, Difficulty);
+		HandleNPCShips(NPCData[i].Ships, targetPos, Difficulty, ShipList, LevelData.DebrisList);
 		HandleShipArrayDeath(NPCData[i].Ships, LevelData, @PlayerData.NumberPopups);
 	end;
 
 	//Level
 	HandleLevelState(LevelData, PlayerData.Ship.Move.Pos, Difficulty);
-
-	//Collisions
-	HandleCollisions(PlayerData, LevelData.Wormhole, NPCData);
 
 	//Array cleaning
 	HandleArrayCleaning(PlayerData, NPCData, LevelData);
@@ -1850,6 +1946,17 @@ begin
 		for i:=0 to High(Tools) do
 		begin
 			if (Tools[i].AmmoKind = Ballistic) then
+			begin
+				Tools[i].CoolDown.Switch := True;
+			end;
+		end;
+	end;
+
+	if FireMissileInput(ControlMap) then
+	begin
+		for i:=0 to High(Tools) do
+		begin
+			if (Tools[i].AmmoKind = Missile) then
 			begin
 				Tools[i].CoolDown.Switch := True;
 			end;

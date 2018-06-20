@@ -76,7 +76,7 @@ Mouse
 White
 Grey
 White
-TRUE
+FALSE
 Keyboard
  3.199999928E-01
  6.399999857E-01
@@ -88,4 +88,4 @@ Keyboard
 White
 Grey
 White
-FALSE
+TRUE
